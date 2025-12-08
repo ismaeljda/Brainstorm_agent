@@ -1,0 +1,18 @@
+# Dependencies pour le système multi-agents CrewAI
+
+# CrewAI et dépendances principales
+crewai>=0.28.0
+crewai-tools>=0.1.0
+
+# LangChain pour l'intégration LLM
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langchain-community>=0.0.20
+
+# OpenAI API
+openai>=1.12.0
+
+# Utilitaires
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+tiktoken>=0.5.0

@@ -1,0 +1,17 @@
+# Dependances pour le systeme multi-agents CrewAI
+
+# Framework multi-agents
+crewai>=0.11.0
+crewai-tools>=0.4.0
+
+# LLM et integration OpenAI
+langchain>=0.1.0
+langchain-openai>=0.0.5
+openai>=1.12.0
+
+# Interface web
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Utilitaires
+python-dotenv>=1.0.0
