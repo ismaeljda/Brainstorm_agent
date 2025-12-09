@@ -12,9 +12,9 @@
         }
 
         body {
-            font-family: 'Courier New', monospace;
-            background: #000;
-            color: #fff;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #FFFFFF;
+            color: #000000;
             overflow-x: hidden;
         }
 
@@ -29,117 +29,118 @@
         }
 
         .landing-title {
-            font-size: 72px;
+            font-family: 'Arial Black', 'Arial Bold', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 4rem);
             font-weight: 900;
-            letter-spacing: -3px;
+            letter-spacing: -0.05em;
             margin-bottom: 20px;
             text-transform: uppercase;
-            border: 8px solid #fff;
-            padding: 20px 40px;
-            background: #000;
+            background: #000000;
+            color: #FFFFFF;
+            padding: 1rem 2rem;
+            line-height: 1;
         }
 
         .landing-subtitle {
-            font-size: 18px;
+            font-family: Monaco, 'Lucida Console', monospace;
+            font-size: 0.875rem;
             margin-bottom: 60px;
-            letter-spacing: 2px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
         .agents-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
+            gap: 2px;
             max-width: 1200px;
             width: 100%;
             margin-bottom: 50px;
+            background: #000000;
+            padding: 2px;
         }
 
         .agent-card {
-            border: 4px solid #fff;
+            border: 2px solid #000000;
             padding: 30px;
             cursor: pointer;
-            transition: all 0.3s;
-            background: #000;
+            transition: all 0.2s ease;
+            background: #FFFFFF;
             position: relative;
         }
 
         .agent-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 40px rgba(255,255,255,0.3);
+            background: #F3F4F6;
         }
 
         .agent-card.selected {
-            background: #fff;
-            color: #000;
+            background: #000000;
+            color: #FFFFFF;
         }
 
         .agent-card.selected .agent-orb {
-            animation: pulse 1.5s infinite;
+            border-color: #FFFFFF;
         }
 
         .agent-orb {
             width: 80px;
             height: 80px;
-            border-radius: 50%;
+            border: 2px solid #000000;
             margin: 0 auto 20px;
             position: relative;
+            background: #FFFFFF;
         }
 
         .orb-strategie {
-            background: radial-gradient(circle at 30% 30%, #1e3a8a, #000428);
-            box-shadow: 0 0 30px #1e3a8a;
+            background: #1e3a8a;
         }
 
         .orb-tech {
-            background: radial-gradient(circle at 30% 30%, #00ff00, #00aa00);
-            box-shadow: 0 0 30px #00ff00;
+            background: #00ff00;
         }
 
         .orb-creatif {
-            background: radial-gradient(circle at 30% 30%, #a855f7, #581c87);
-            box-shadow: 0 0 30px #a855f7;
+            background: #a855f7;
         }
 
         .orb-facilitateur {
-            background: radial-gradient(circle at 30% 30%, #ffffff, #888888);
-            box-shadow: 0 0 30px #ffffff;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            background: #ffffff;
+            border: 2px solid #000000;
         }
 
         .agent-name {
-            font-size: 24px;
+            font-family: 'Arial Black', 'Arial Bold', sans-serif;
+            font-size: 1.25rem;
             font-weight: 900;
             margin-bottom: 10px;
             text-transform: uppercase;
+            letter-spacing: -0.02em;
         }
 
         .agent-desc {
-            font-size: 14px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 0.875rem;
             line-height: 1.5;
         }
 
         .launch-btn {
             display: none;
-            font-size: 32px;
-            font-weight: 900;
-            padding: 20px 60px;
-            border: 6px solid #fff;
-            background: #fff;
-            color: #000;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 1.5rem;
+            font-weight: 500;
+            padding: 1rem 3rem;
+            border: 2px solid #000000;
+            background: #000000;
+            color: #FFFFFF;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: all 0.3s;
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
         }
 
         .launch-btn:hover {
-            background: #000;
-            color: #fff;
-            transform: scale(1.05);
+            background: #FFFFFF;
+            color: #000000;
         }
 
         .launch-btn.visible {
@@ -158,29 +159,35 @@
         }
 
         .chat-header {
-            border-bottom: 4px solid #fff;
+            border-bottom: 2px solid #000000;
             padding: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: #FFFFFF;
         }
 
         .chat-title {
-            font-size: 48px;
+            font-family: 'Arial Black', 'Arial Bold', sans-serif;
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
             font-weight: 900;
             text-transform: uppercase;
+            letter-spacing: -0.05em;
+            background: #000000;
+            color: #FFFFFF;
+            padding: 0.5rem 1rem;
+            display: inline-block;
         }
 
         .active-agents {
             display: flex;
-            gap: 15px;
+            gap: 10px;
         }
 
         .active-agent-orb {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 3px solid #fff;
+            width: 40px;
+            height: 40px;
+            border: 2px solid #000000;
         }
 
         .active-agent-orb.talking {
@@ -190,11 +197,11 @@
         @keyframes talking {
             0%, 100% { 
                 transform: scale(1);
-                box-shadow: 0 0 20px currentColor;
+                border-width: 2px;
             }
             50% { 
-                transform: scale(1.2);
-                box-shadow: 0 0 40px currentColor;
+                transform: scale(1.15);
+                border-width: 3px;
             }
         }
 
@@ -202,7 +209,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 40px;
-            background: #000;
+            background: #FFFFFF;
         }
 
         .message {
@@ -215,9 +222,8 @@
         .message-orb {
             width: 40px;
             height: 40px;
-            border-radius: 50%;
             flex-shrink: 0;
-            border: 2px solid #fff;
+            border: 2px solid #000000;
         }
 
         .message-orb.talking {
@@ -226,80 +232,92 @@
 
         .message-content {
             flex: 1;
-            border: 3px solid #fff;
+            border: 2px solid #000000;
             padding: 20px;
-            background: #000;
-            font-size: 16px;
-            line-height: 1.6;
+            background: #FFFFFF;
+            font-family: Monaco, 'Lucida Console', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            letter-spacing: 0.03em;
+            min-height: 60px;
+        }
+
+        .message-content.typing::after {
+            content: '▊';
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
         }
 
         .message-strategie .message-orb {
             background: #1e3a8a;
-            box-shadow: 0 0 15px #1e3a8a;
         }
 
         .message-tech .message-orb {
             background: #00ff00;
-            box-shadow: 0 0 15px #00ff00;
         }
 
         .message-creatif .message-orb {
             background: #a855f7;
-            box-shadow: 0 0 15px #a855f7;
         }
 
         .message-facilitateur .message-orb {
             background: #ffffff;
-            box-shadow: 0 0 15px #ffffff;
+            border: 2px solid #000000;
         }
 
         .message-human .message-orb {
-            background: #fff;
-            box-shadow: 0 0 15px #fff;
+            background: #000000;
         }
 
         .message-human .message-content {
-            background: #222;
+            background: #F3F4F6;
         }
 
         .chat-input-container {
-            border-top: 4px solid #fff;
+            border-top: 2px solid #000000;
             padding: 30px;
             display: flex;
             gap: 20px;
+            background: #FFFFFF;
         }
 
         #chatInput {
             flex: 1;
-            background: #000;
-            border: 3px solid #fff;
-            color: #fff;
-            padding: 20px;
-            font-size: 18px;
-            font-family: 'Courier New', monospace;
+            background: #FFFFFF;
+            border: 2px solid #000000;
+            color: #000000;
+            padding: 1rem;
+            font-size: 0.875rem;
+            font-family: Monaco, 'Lucida Console', monospace;
             outline: none;
         }
 
         #chatInput::placeholder {
-            color: #666;
+            color: #999999;
         }
 
         .send-btn {
-            background: #fff;
-            color: #000;
-            border: 3px solid #fff;
-            padding: 20px 40px;
-            font-size: 18px;
-            font-weight: 900;
+            background: #000000;
+            color: #FFFFFF;
+            border: 2px solid #000000;
+            padding: 1rem 2rem;
+            font-size: 0.875rem;
+            font-weight: 500;
             cursor: pointer;
-            font-family: 'Courier New', monospace;
+            font-family: Arial, Helvetica, sans-serif;
             text-transform: uppercase;
-            transition: all 0.3s;
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
         }
 
         .send-btn:hover {
-            background: #000;
-            color: #fff;
+            background: #FFFFFF;
+            color: #000000;
         }
 
         .send-btn:disabled {
@@ -312,51 +330,54 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: #000;
-            border-left: 2px solid #fff;
+            background: #FFFFFF;
+            border-left: 2px solid #000000;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #fff;
-            border: 2px solid #000;
+            background: #000000;
+            border: 2px solid #FFFFFF;
         }
 
         .objective-input {
             width: 100%;
             max-width: 600px;
-            background: #000;
-            border: 4px solid #fff;
-            color: #fff;
-            padding: 20px;
-            font-size: 18px;
-            font-family: 'Courier New', monospace;
+            background: #FFFFFF;
+            border: 2px solid #000000;
+            color: #000000;
+            padding: 1rem;
+            font-size: 0.875rem;
+            font-family: Monaco, 'Lucida Console', monospace;
             margin-bottom: 60px;
             text-align: center;
             outline: none;
+            letter-spacing: 0.03em;
         }
 
         .objective-input::placeholder {
-            color: #666;
+            color: #999999;
         }
 
         .back-btn {
             position: absolute;
             top: 30px;
             left: 30px;
-            background: #000;
-            color: #fff;
-            border: 3px solid #fff;
-            padding: 15px 30px;
-            font-size: 16px;
-            font-weight: 900;
+            background: #FFFFFF;
+            color: #000000;
+            border: 2px solid #000000;
+            padding: 1rem 2rem;
+            font-size: 0.875rem;
+            font-weight: 500;
             cursor: pointer;
-            font-family: 'Courier New', monospace;
+            font-family: Arial, Helvetica, sans-serif;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
         }
 
         .back-btn:hover {
-            background: #fff;
-            color: #000;
+            background: #000000;
+            color: #FFFFFF;
         }
     </style>
 </head>
@@ -447,6 +468,16 @@
             'tech': '#00ff00',
             'creatif': '#a855f7'
         };
+
+        // Select facilitator by default
+        window.addEventListener('DOMContentLoaded', () => {
+            const facilitatorCard = document.querySelector('.agent-card[data-agent="facilitateur"]');
+            if (facilitatorCard) {
+                facilitatorCard.classList.add('selected');
+                selectedAgents.add('facilitateur');
+                document.getElementById('launchBtn').classList.add('visible');
+            }
+        });
 
         // Agent card selection
         document.querySelectorAll('.agent-card').forEach(card => {
@@ -564,7 +595,8 @@
                 }
                 orb.classList.add('talking');
                 
-                typeWriter(content, message, 20, () => {
+                // Slower, more natural typing speed (30-40ms per character)
+                typeWriter(content, message, 30, () => {
                     orb.classList.remove('talking');
                     if (headerOrb) {
                         headerOrb.classList.remove('talking');
@@ -580,14 +612,22 @@
         function typeWriter(element, text, speed, callback) {
             let i = 0;
             const messagesContainer = document.getElementById('chatMessages');
+            element.classList.add('typing');
             
             function type() {
                 if (i < text.length) {
+                    // Remove typing class temporarily to update text
+                    element.classList.remove('typing');
                     element.textContent += text.charAt(i);
+                    element.classList.add('typing');
                     i++;
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    setTimeout(type, speed);
+                    
+                    // Variable speed for more natural typing
+                    const nextDelay = speed + Math.random() * 10;
+                    setTimeout(type, nextDelay);
                 } else {
+                    element.classList.remove('typing');
                     if (callback) callback();
                 }
             }

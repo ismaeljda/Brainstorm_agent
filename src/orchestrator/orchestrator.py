@@ -242,8 +242,8 @@ Réponds UNIQUEMENT avec un mot : strategie, tech, creatif, facilitateur, ou non
 
         # Créer une tâche pour l'agent
         task = Task(
-            description=f"{context}\n\nRéponds selon ton expertise et ton rôle.",
-            expected_output="Une intervention pertinente et concise (max 5-6 phrases)",
+            description=f"{context}\n\nRéponds en FRANÇAIS. Maximum 1-2 phrases. Sois ULTRA CONCIS.",
+            expected_output="1-2 phrases MAXIMUM. Direct et actionable. EN FRANÇAIS.",
             agent=agent
         )
 
