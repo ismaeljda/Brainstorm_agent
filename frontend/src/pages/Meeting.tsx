@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { wsService, WebSocketMessage } from '../services/websocket';
 import ReactMarkdown from 'react-markdown';
+import { useAuth } from '../components/Auth';
 
 interface Message {
   agent: string;
@@ -25,6 +26,7 @@ const AGENT_CONFIG = {
 export const MeetingPage: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [connected, setConnected] = useState(false);
@@ -164,12 +166,36 @@ export const MeetingPage: React.FC = () => {
               </span>
             )}
           </div>
-          <button
-            onClick={handleBackToConfig}
-            className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            ← Retour
-          </button>
+
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleBackToConfig}
+              className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              ← Retour
+            </button>
+
+            {/* User menu */}
+            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+              {user?.photoURL && (
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName || 'User'}
+                  className="w-7 h-7 rounded-full"
+                />
+              )}
+              <span className="text-sm font-medium text-gray-700">
+                {user?.displayName?.split(' ')[0] || 'User'}
+              </span>
+              <button
+                onClick={() => signOut()}
+                className="ml-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-900
+                         hover:bg-gray-200 rounded transition-colors"
+              >
+                Déconnexion
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

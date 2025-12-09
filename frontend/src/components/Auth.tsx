@@ -10,7 +10,6 @@ import {
   User
 } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
-import { config } from '../config';
 
 interface AuthProps {
   children: React.ReactNode;
@@ -117,29 +116,21 @@ export const LoginButton: React.FC = () => {
 export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
 
-  // MODE DEV : Bypass Firebase si clé demo
-  const isDev = config.firebase.apiKey === 'demo-api-key';
-
-  if (isDev) {
-    // En mode dev, pas besoin d'auth
-    return <>{children}</>;
-  }
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Chargement...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
       </div>
     );
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <h1 className="text-2xl font-bold">Authentification requise</h1>
-        <LoginButton />
-      </div>
-    );
+    // Rediriger vers la page de login
+    window.location.href = '/login';
+    return null;
   }
 
   return <>{children}</>;

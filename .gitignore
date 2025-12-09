@@ -4,6 +4,11 @@ src/.env
 *.env
 .env.*
 
+# Firebase credentials (NEVER commit!)
+firebase-credentials.json
+*firebase-adminsdk*.json
+.firebase/
+
 # Python
 __pycache__/
 *.py[cod]
