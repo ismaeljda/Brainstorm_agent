@@ -89,8 +89,11 @@ def check_api_key() -> bool:
     if not api_key:
         print("\n❌ ERREUR : Variable d'environnement OPENAI_API_KEY non définie.\n")
         print("Veuillez configurer votre clé API OpenAI :")
-        print("  Windows : set OPENAI_API_KEY=your-api-key")
-        print("  Linux/Mac : export OPENAI_API_KEY=your-api-key\n")
+        print("  1. Obtenez une clé avec $5 de crédits gratuits : https://platform.openai.com/api-keys")
+        print("  2. Configurez-la :")
+        print("     Windows : set OPENAI_API_KEY=your-api-key")
+        print("     Linux/Mac : export OPENAI_API_KEY=your-api-key")
+        print("  Ou créez un fichier .env avec : OPENAI_API_KEY=your-api-key\n")
         return False
     return True
 

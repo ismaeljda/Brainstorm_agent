@@ -193,5 +193,5 @@ def stop_meeting():
 
 if __name__ == '__main__':
     print("🌐 Démarrage du serveur web DebateHub...")
-    print("📍 Ouvrez votre navigateur sur : http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)
+    print("📍 Ouvrez votre navigateur sur : http://localhost:5001")
+    app.run(debug=True, host='0.0.0.0', port=5001, threaded=True)
