@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Meeting Room - Multi-Agent Voice</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        /* Meeting Room */
+        .meeting-room {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        /* Agents Grid */
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .agent-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .agent-card.speaking {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        }
+
+        .agent-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 15px;
+            transition: all 0.3s;
+        }
+
+        .agent-card.speaking .agent-avatar {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .agent-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .agent-role {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        /* Controls */
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .status.connected { background: #d1fae5; color: #065f46; }
+        .status.disconnected { background: #fee2e2; color: #991b1b; }
+        .status.speaking { background: #fef3c7; color: #92400e; }
+
+        button {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 10px;
+        }
+
+        .btn-connect { background: #10b981; color: white; }
+        .btn-connect:hover { background: #059669; transform: translateY(-2px); }
+        .btn-disconnect { background: #ef4444; color: white; display: none; }
+        .btn-disconnect:hover { background: #dc2626; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Transcript */
+        .transcript {
+            background: #f9fafb;
+            border-radius: 15px;
+            padding: 25px;
+            min-height: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .transcript-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .message-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .message-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .message-content {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-left: 40px;
+            line-height: 1.6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .message.user .message-content {
+            background: #dbeafe;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎭 AI Meeting Room</h1>
+            <p class="subtitle">Brainstormez avec une équipe d'experts IA vocaux</p>
+        </header>
+
+        <div class="meeting-room">
+            <!-- Agents Grid -->
+            <div class="agents-grid">
+                <div class="agent-card" id="agent-ceo">
+                    <div class="agent-avatar">👔</div>
+                    <div class="agent-name">CEO</div>
+                    <div class="agent-role">Vision Stratégique</div>
+                </div>
+
+                <div class="agent-card" id="agent-marketing">
+                    <div class="agent-avatar">📊</div>
+                    <div class="agent-name">Marketing</div>
+                    <div class="agent-role">Marché & Clients</div>
+                </div>
+
+                <div class="agent-card" id="agent-tech">
+                    <div class="agent-avatar">💻</div>
+                    <div class="agent-name">Tech Lead</div>
+                    <div class="agent-role">Faisabilité Technique</div>
+                </div>
+
+                <div class="agent-card" id="agent-finance">
+                    <div class="agent-avatar">💰</div>
+                    <div class="agent-name">CFO</div>
+                    <div class="agent-role">Finance & ROI</div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <div class="status disconnected" id="status">🔴 Meeting non démarré</div>
+                <br>
+                <button class="btn-connect" id="connectBtn">Démarrer le Meeting</button>
+                <button class="btn-disconnect" id="disconnectBtn">Terminer le Meeting</button>
+            </div>
+
+            <!-- Transcript -->
+            <div class="transcript" id="transcript">
+                <div class="transcript-title">📝 Transcript du Meeting</div>
+                <div style="text-align: center; color: #9ca3af; padding: 40px 20px;">
+                    Le meeting n'a pas encore commencé...<br>
+                    <small>Cliquez sur "Démarrer le Meeting" pour commencer</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Agents configuration
+        const AGENTS = {
+            ceo: {
+                id: 'ceo',
+                name: 'Alex (CEO)',
+                emoji: '👔',
+                voice: 'onyx', // OpenAI voice
+                elevenlabsVoice: '21m00Tcm4TlvDq8ikWAM', // Rachel - professional
+                role: 'Vision Stratégique',
+                color: '#3b82f6',
+                systemPrompt: `Tu es Alex, le CEO passionné et visionnaire.
+
+PERSONNALITÉ:
+- Énergique et inspirant
+- Focus sur la vision long-terme
+- Challenge les idées pour les renforcer
+- Parle de manière décisive et confiante
+
+EXPERTISE:
+- Vision stratégique et positionnement
+- Opportunités de marché et croissance
+- Différenciation concurrentielle
+- Alignement produit-marché
+
+STYLE DE RÉPONSE:
+- Commence par reformuler le point clé
+- 2-3 phrases MAX, ultra-concises
+- Termine avec une question stratégique provocante
+- Utilise "nous" pour être collaboratif
+
+EXEMPLE: "L'enjeu ici c'est le positionnement. Si tu attaques ce marché, quelle est ta promesse unique que personne ne peut copier? Pense différenciation radicale, pas amélioration incrémentale."`
+            },
+            marketing: {
+                id: 'marketing',
+                name: 'Marketing',
+                emoji: '📊',
+                voice: 'shimmer',
+                role: 'Marché & Clients',
+                color: '#ec4899',
+                systemPrompt: `Tu es Sarah, l'experte Marketing obsédée par le client.
+
+PERSONNALITÉ:
+- Enthousiaste et empathique
+- Toujours ramène tout au client final
+- Créative sur le messaging
+- Data-driven mais humaine
+
+EXPERTISE:
+- Segmentation client et personas
+- Stratégie d'acquisition et growth
+- Branding et positionnement
+- Customer journey et conversion
+
+STYLE DE RÉPONSE:
+- Commence toujours par "Le client..."
+- 2-3 phrases MAX
+- Donne UN exemple concret
+- Termine par une question sur le client cible
+
+EXEMPLE: "Le client ici doit être super précis. T'es pas en train de cibler 'tout le monde'. Imagine ta cliente idéale - quel est SON problème urgent aujourd'hui? Si tu réponds pas à ça, personne va payer."`
+            },
+            tech: {
+                id: 'tech',
+                name: 'Tech Lead',
+                emoji: '💻',
+                voice: 'echo',
+                role: 'Faisabilité Technique',
+                color: '#10b981',
+                systemPrompt: `Tu es Marcus, le Tech Lead pragmatique et direct.
+
+PERSONNALITÉ:
+- Pragmatique et terre-à-terre
+- Aime la simplicité technique
+- Anti-over-engineering
+- Focus sur le "ship it"
+
+EXPERTISE:
+- Architecture et scalabilité
+- Choix de stack technique
+- Trade-offs et risques tech
+- Estimation de complexité
+
+STYLE DE RÉPONSE:
+- Va droit au but, zéro jargon inutile
+- 2-3 phrases MAX
+- Mentionne TOUJOURS la complexité (simple/moyen/complexe)
+- Propose une solution concrète
+
+EXEMPLE: "Techniquement? C'est faisable en 3 mois avec React + Firebase. Niveau complexité c'est moyen - l'auth et le paiement sont standard. Le vrai risque c'est la scalabilité après 10k users. On commence simple ou tu veux anticiper ça?"`
+            },
+            finance: {
+                id: 'finance',
+                name: 'CFO',
+                emoji: '💰',
+                voice: 'fable',
+                role: 'Finance & ROI',
+                color: '#f59e0b',
+                systemPrompt: `Tu es Lisa, la CFO analytique et cash-focused.
+
+PERSONNALITÉ:
+- Analytique mais pas ennuyeuse
+- Obsédée par les chiffres qui comptent
+- Réaliste sur les coûts
+- Focus sur la rentabilité rapide
+
+EXPERTISE:
+- Business model et unit economics
+- Coûts d'acquisition (CAC) et lifetime value (LTV)
+- Projections financières réalistes
+- Cash runway et rentabilité
+
+STYLE DE RÉPONSE:
+- Toujours donner UN chiffre concret
+- 2-3 phrases MAX
+- Ramène à la réalité financière
+- Termine avec une métrique clé à surveiller
+
+EXEMPLE: "Niveau finance, si ton CAC est à 50€ et ton LTV à 200€, ça peut marcher. Mais combien de clients tu peux acquérir par mois avec quel budget? Sans ça, on fait juste des maths dans le vide. Quelle est ta capacité d'investissement initiale?"`
+            }
+        };
+
+        let ws = null;
+        let audioContext = null;
+        let mediaStream = null;
+        let currentAgent = null;
+        let conversationHistory = [];
+
+        const status = document.getElementById('status');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const transcript = document.getElementById('transcript');
+
+        function updateStatus(text, className) {
+            status.textContent = text;
+            status.className = 'status ' + className;
+        }
+
+        function highlightAgent(agentId) {
+            // Remove speaking class from all agents
+            document.querySelectorAll('.agent-card').forEach(card => {
+                card.classList.remove('speaking');
+            });
+
+            // Add speaking class to current agent
+            if (agentId) {
+                const agentCard = document.getElementById(`agent-${agentId}`);
+                if (agentCard) {
+                    agentCard.classList.add('speaking');
+                    currentAgent = AGENTS[agentId];
+                }
+            }
+        }
+
+        function addMessage(agentId, content) {
+            const isEmpty = transcript.querySelector('[style*="center"]');
+            if (isEmpty) {
+                transcript.innerHTML = '<div class="transcript-title">📝 Transcript du Meeting</div>';
+            }
+
+            const agent = agentId === 'user' ? {
+                name: 'Vous',
+                emoji: '👤',
+                color: '#3b82f6'
+            } : AGENTS[agentId];
+
+            const msg = document.createElement('div');
+            msg.className = 'message ' + agentId;
+            msg.innerHTML = `
+                <div class="message-header">
+                    <div class="message-avatar" style="background: ${agent.color}">${agent.emoji}</div>
+                    <div class="message-name" style="color: ${agent.color}">${agent.name}</div>
+                </div>
+                <div class="message-content">${content}</div>
+            `;
+            transcript.appendChild(msg);
+            transcript.scrollTop = transcript.scrollHeight;
+        }
+
+        async function connect() {
+            try {
+                updateStatus('🔄 Démarrage du meeting...', 'speaking');
+                connectBtn.disabled = true;
+
+                // Get token
+                const tokenRes = await fetch('http://localhost:5000/api/token');
+                if (!tokenRes.ok) throw new Error('Failed to get token');
+                const { token } = await tokenRes.json();
+
+                // Get microphone
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+                });
+
+                // Connect WebSocket with orchestrator
+                const url = `wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17`;
+                ws = new WebSocket(url, [
+                    'realtime',
+                    `openai-insecure-api-key.${token}`,
+                    'openai-beta.realtime-v1'
+                ]);
+
+                ws.onopen = async () => {
+                    console.log('✅ WebSocket connected');
+
+                    // Configure session with orchestrator (TEXT ONLY - audio via ElevenLabs)
+                    ws.send(JSON.stringify({
+                        type: 'session.update',
+                        session: {
+                            modalities: ['text'], // TEXT ONLY, no OpenAI audio
+                            instructions: `Tu es un ORCHESTRATEUR de meeting intelligent. Ton rôle est de:
+
+1. Analyser ce que l'utilisateur dit
+2. Décider quel expert doit répondre (CEO, Marketing, Tech Lead, ou CFO)
+3. Répondre EN TANT QUE cet expert avec sa personnalité
+
+IMPORTANT:
+- Commence TOUJOURS ta réponse par: [AGENT: nom]
+- Exemples: "[AGENT: CEO] Excellente question..." ou "[AGENT: Marketing] D'un point de vue client..."
+- Choisis l'agent le plus pertinent pour la question
+- Reste bref (2-3 phrases max)
+
+Experts disponibles:
+- CEO: Vision stratégique, positionnement, croissance
+- Marketing: Clients, marché, acquisition, branding
+- Tech Lead: Faisabilité technique, architecture, tech
+- CFO: Finances, business model, coûts, rentabilité`,
+                            turn_detection: {
+                                type: 'server_vad',
+                                threshold: 0.5,
+                                silence_duration_ms: 700
+                            },
+                            input_audio_transcription: { model: 'whisper-1' }
+                        }
+                    }));
+
+                    await startAudioStreaming();
+
+                    updateStatus('🟢 Meeting en cours - À vous de parler!', 'connected');
+                    connectBtn.style.display = 'none';
+                    disconnectBtn.style.display = 'inline-block';
+                };
+
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+
+                    switch (data.type) {
+                        case 'conversation.item.input_audio_transcription.completed':
+                            addMessage('user', data.transcript);
+                            break;
+
+                        case 'response.text.done':
+                        case 'response.done':
+                            if (data.response && data.response.output && data.response.output.length > 0) {
+                                const output = data.response.output[0];
+                                if (output.content && output.content.length > 0) {
+                                    const text = output.content[0].text;
+
+                                    // Parse agent from response
+                                    const match = text.match(/\[AGENT:\s*(\w+)\](.*)/is);
+                                    if (match) {
+                                        const agentName = match[1].toLowerCase();
+                                        const message = match[2].trim();
+
+                                        // Find agent ID
+                                        let agentId = 'ceo'; // default
+                                        for (const [id, agent] of Object.entries(AGENTS)) {
+                                            if (agent.name.toLowerCase().includes(agentName) || id === agentName) {
+                                                agentId = id;
+                                                break;
+                                            }
+                                        }
+
+                                        highlightAgent(agentId);
+                                        addMessage(agentId, message);
+
+                                        // Generate speech with ElevenLabs
+                                        generateAndPlaySpeech(agentId, message);
+                                    } else {
+                                        // Fallback: use CEO
+                                        highlightAgent('ceo');
+                                        addMessage('ceo', text);
+                                        generateAndPlaySpeech('ceo', text);
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    disconnect();
+                };
+
+                ws.onclose = () => disconnect();
+
+            } catch (error) {
+                console.error('Connection error:', error);
+                alert('Erreur: ' + error.message);
+                updateStatus('❌ Erreur', 'disconnected');
+                connectBtn.disabled = false;
+            }
+        }
+
+        async function startAudioStreaming() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(mediaStream);
+            const processor = audioContext.createScriptProcessor(2048, 1, 1);
+
+            const targetSampleRate = 24000;
+            const sourceSampleRate = audioContext.sampleRate;
+            const sampleRateRatio = sourceSampleRate / targetSampleRate;
+
+            processor.onaudioprocess = (e) => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    const inputData = e.inputBuffer.getChannelData(0);
+
+                    // Downsample
+                    const outputLength = Math.floor(inputData.length / sampleRateRatio);
+                    const resampled = new Float32Array(outputLength);
+                    for (let i = 0; i < outputLength; i++) {
+                        resampled[i] = inputData[Math.floor(i * sampleRateRatio)];
+                    }
+
+                    // Convert to Int16 PCM
+                    const int16 = new Int16Array(resampled.length);
+                    for (let i = 0; i < resampled.length; i++) {
+                        const s = Math.max(-1, Math.min(1, resampled[i]));
+                        int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                    }
+
+                    // Send as base64
+                    const bytes = new Uint8Array(int16.buffer);
+                    let binary = '';
+                    for (let i = 0; i < bytes.length; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+
+                    ws.send(JSON.stringify({
+                        type: 'input_audio_buffer.append',
+                        audio: btoa(binary)
+                    }));
+                }
+            };
+
+            source.connect(processor);
+            processor.connect(audioContext.destination);
+        }
+
+        // ElevenLabs audio generation and playback
+        async function generateAndPlaySpeech(agentId, text) {
+            try {
+                console.log(`🎵 Generating speech for ${agentId}: "${text.substring(0, 50)}..."`);
+
+                const response = await fetch('http://localhost:5000/api/speak', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text, agent: agentId })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate speech');
+                }
+
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+
+                const audio = new Audio(audioUrl);
+                audio.play();
+
+                audio.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    highlightAgent(null);
+                    updateStatus('🟢 Meeting en cours - À vous de parler!', 'connected');
+                };
+
+                console.log('✅ Playing audio');
+
+            } catch (error) {
+                console.error('Error generating/playing speech:', error);
+                highlightAgent(null);
+            }
+        }
+
+        function disconnect() {
+            if (ws) ws.close();
+            if (audioContext) audioContext.close();
+            if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+
+            ws = null;
+            audioContext = null;
+            mediaStream = null;
+
+            highlightAgent(null);
+            updateStatus('🔴 Meeting terminé', 'disconnected');
+            connectBtn.style.display = 'inline-block';
+            connectBtn.disabled = false;
+            disconnectBtn.style.display = 'none';
+        }
+
+        connectBtn.addEventListener('click', connect);
+        disconnectBtn.addEventListener('click', disconnect);
+    </script>
+</body>
+</html>

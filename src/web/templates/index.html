@@ -301,6 +301,15 @@
 </head>
 <body>
     <div class="container">
+        <!-- Navigation Header -->
+        <nav style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 15px 30px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <a href="/" style="font-size: 1.3rem; font-weight: 700; color: white; text-decoration: none;">🧠 BrainStormIA</a>
+            <div style="display: flex; gap: 15px;">
+                <a href="/" style="padding: 8px 16px; background: white; color: #667eea; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem;">← Accueil</a>
+                <a href="/context" style="padding: 8px 16px; background: rgba(255,255,255,0.9); color: #667eea; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem;">📚 Contexte</a>
+                <a href="/meeting" style="padding: 8px 16px; background: rgba(255,255,255,0.9); color: #667eea; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem;">🎙️ Vocal</a>
+            </div>
+        </nav>
         <div class="header">
             <div class="header-content">
                 <h1>🤖 DebateHub - Réunion Multi-Agents</h1>
@@ -308,6 +317,7 @@
             </div>
             <div class="header-actions">
                 <a href="/context" class="header-btn">📋 Contexte</a>
+                <a href="/meeting" class="header-btn">🎙️ Meeting Vocal</a>
             </div>
             <button class="pause-btn" id="pauseBtn">⏸️ Pause</button>
         </div>

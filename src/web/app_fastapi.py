@@ -6,9 +6,11 @@ Avec WebSocket pour streaming temps réel et Celery pour async.
 
 import sys
 import os
+import io
+import requests
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -21,6 +23,8 @@ import uuid
 import json
 import redis
 import asyncio
+from openai import OpenAI
+from elevenlabs.client import ElevenLabs
 
 # Charger les variables d'environnement
 load_dotenv()
@@ -70,6 +74,19 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # Initialiser le gestionnaire de contexte
 context_storage = ContextStorage()
+
+# Initialiser les clients pour le système vocal
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+elevenlabs_client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
+
+# ElevenLabs voice IDs pour le système multi-agents vocal
+AGENT_VOICES = {
+    'ceo': '21m00Tcm4TlvDq8ikWAM',      # Rachel - Professional female
+    'marketing': 'EXAVITQu4vr4xnSDxMaL',  # Bella - Enthusiastic female
+    'tech': 'TxGEqnHWrfWFTfGW9XjX',      # Josh - Clear male
+    'finance': 'pNInz6obpgDQGcFmaJgB',    # Adam - Articulate male
+}
+ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
 # État global de la réunion
 meeting_state = {
@@ -149,7 +166,12 @@ class WebOrchestrator(Orchestrator):
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    """Page d'accueil."""
+    """Page d'accueil - Interface vocale unifiée avec RAG."""
+    return templates.TemplateResponse("home.html", {"request": request})
+
+@app.get("/text", response_class=HTMLResponse)
+async def text_meeting(request: Request):
+    """Interface texte originale (ancienne version pour référence)."""
     return templates.TemplateResponse("index.html", {"request": request})
 
 
@@ -697,11 +719,169 @@ async def api_upload_document(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ==================== ROUTES VOCAL SYSTEM ====================
+
+@app.get("/meeting", response_class=HTMLResponse)
+async def meeting_room(request: Request):
+    """Interface de meeting room avec multi-agents vocaux."""
+    return templates.TemplateResponse("meeting_room.html", {"request": request})
+
+
+class RAGQueryRequest(BaseModel):
+    query: str
+    top_k: int = 3
+
+
+@app.post("/api/rag")
+async def rag_query_for_vocal(request: RAGQueryRequest):
+    """
+    Interroge le RAG et retourne le contexte formaté pour le meeting vocal.
+    Utilisé pour enrichir les prompts de l'orchestrateur en temps réel.
+    """
+    try:
+        if not request.query:
+            return {'context': '', 'results': []}
+
+        # Chercher dans Qdrant
+        rag_service = get_qdrant_service()
+        results = rag_service.search(request.query, top_k=request.top_k)
+
+        if not results:
+            return {'context': '', 'results': []}
+
+        # Formater le contexte pour l'injection dans le prompt
+        context_parts = ["=== CONTEXTE DOCUMENTAIRE PERTINENT ===\n"]
+        for i, result in enumerate(results, 1):
+            text = result.get('text', '')
+            score = result.get('score', 0)
+            if score > 0.7:  # Seuil de pertinence
+                context_parts.append(f"[Document {i} - Score: {score:.2f}]")
+                context_parts.append(text[:500])  # Limiter à 500 caractères
+                context_parts.append("")
+
+        formatted_context = "\n".join(context_parts)
+
+        print(f"🔍 RAG Query: '{request.query}' → {len(results)} résultats")
+
+        return {
+            'context': formatted_context,
+            'results': results,
+            'count': len(results)
+        }
+
+    except Exception as e:
+        print(f"❌ Erreur RAG query: {e}")
+        return {'context': '', 'results': [], 'error': str(e)}
+
+
+class SpeakRequest(BaseModel):
+    text: str
+    agent: Optional[str] = None
+
+
+@app.get("/api/token")
+async def get_realtime_token():
+    """
+    Génère un token éphémère pour l'API OpenAI Realtime.
+    Ce token permet au frontend de se connecter directement au WebSocket OpenAI
+    sans exposer la clé API principale.
+    """
+    try:
+        print("🔑 Génération d'un token éphémère pour OpenAI Realtime API...")
+
+        response = requests.post(
+            'https://api.openai.com/v1/realtime/sessions',
+            headers={
+                'Authorization': f'Bearer {os.getenv("OPENAI_API_KEY")}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'gpt-4o-realtime-preview-2024-12-17',
+                'voice': 'alloy'
+            }
+        )
+
+        if response.status_code != 200:
+            print(f"❌ Erreur API OpenAI: {response.status_code} - {response.text}")
+            raise HTTPException(status_code=500, detail="Failed to generate token")
+
+        data = response.json()
+        token = data['client_secret']['value']
+        expires_at = data['client_secret']['expires_at']
+
+        print(f"✅ Token généré (expire: {expires_at})")
+
+        return {
+            'token': token,
+            'expires_at': expires_at
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur lors de la génération du token: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/speak")
+async def text_to_speech(request: SpeakRequest):
+    """
+    Convertit le texte en audio avec ElevenLabs et renvoie le fichier audio.
+    Supporte les multi-voix pour le système d'agents.
+    """
+    try:
+        text = request.text
+        agent_id = request.agent
+
+        if not text:
+            raise HTTPException(status_code=400, detail="Aucun texte fourni")
+
+        # Choisir la voix: agent spécifique ou voix par défaut
+        if agent_id and agent_id in AGENT_VOICES:
+            voice_id = AGENT_VOICES[agent_id]
+            print(f"🎵 Génération audio pour agent '{agent_id}' ({voice_id}): '{text[:50]}...'")
+        else:
+            voice_id = ELEVENLABS_VOICE_ID
+            print(f"🔊 Génération audio pour: '{text[:50]}...'")
+
+        # Générer l'audio avec ElevenLabs
+        audio_generator = elevenlabs_client.text_to_speech.convert(
+            voice_id=voice_id,
+            text=text,
+            model_id="eleven_multilingual_v2"
+        )
+
+        # Convertir en bytes
+        audio_bytes = b"".join(audio_generator)
+
+        # Retourner l'audio en streaming
+        return StreamingResponse(
+            io.BytesIO(audio_bytes),
+            media_type="audio/mpeg",
+            headers={
+                "Content-Disposition": "inline; filename=speech.mp3"
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur lors de la génération audio: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==================== MAIN ====================
+
 if __name__ == '__main__':
     import uvicorn
 
     print("🌐 Démarrage du serveur FastAPI BrainStormIA...")
     print("📍 Application : http://localhost:8000")
+    print("🎤 Meeting Room Vocal : http://localhost:8000/meeting")
     print("📖 Documentation API : http://localhost:8000/docs")
     print("\n⚠️  Assurez-vous que Redis et Qdrant sont lancés")
     print("   docker-compose up -d redis qdrant")

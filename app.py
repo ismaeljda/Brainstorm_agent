@@ -6,6 +6,7 @@ Permet de parler via le micro du navigateur et d'écouter la réponse.
 import os
 import io
 import tempfile
+import requests
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -29,11 +30,69 @@ recognizer = sr.Recognizer()
 # Configuration
 ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
+# ElevenLabs voice IDs for multi-agent system
+AGENT_VOICES = {
+    'ceo': '21m00Tcm4TlvDq8ikWAM',      # Rachel - Professional female
+    'marketing': 'EXAVITQu4vr4xnSDxMaL',  # Bella - Enthusiastic female
+    'tech': 'TxGEqnHWrfWFTfGW9XjX',      # Josh - Clear male
+    'finance': 'pNInz6obpgDQGcFmaJgB',    # Adam - Articulate male
+}
+
 
 @app.route('/')
 def index():
     """Page principale."""
     return render_template('index.html')
+
+
+@app.route('/meeting')
+def meeting_room():
+    """Interface de meeting room avec multi-agents vocaux."""
+    return render_template('meeting_room.html')
+
+
+@app.route('/api/token', methods=['GET'])
+def get_token():
+    """
+    Génère un token éphémère pour l'API OpenAI Realtime.
+    Ce token permet au frontend de se connecter directement au WebSocket OpenAI
+    sans exposer la clé API principale.
+    """
+    try:
+        print("🔑 Génération d'un token éphémère pour OpenAI Realtime API...")
+
+        response = requests.post(
+            'https://api.openai.com/v1/realtime/sessions',
+            headers={
+                'Authorization': f'Bearer {os.getenv("OPENAI_API_KEY")}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'gpt-4o-realtime-preview-2024-12-17',
+                'voice': 'alloy'
+            }
+        )
+
+        if response.status_code != 200:
+            print(f"❌ Erreur API OpenAI: {response.status_code} - {response.text}")
+            return jsonify({'error': 'Failed to generate token'}), 500
+
+        data = response.json()
+        token = data['client_secret']['value']
+        expires_at = data['client_secret']['expires_at']
+
+        print(f"✅ Token généré (expire: {expires_at})")
+
+        return jsonify({
+            'token': token,
+            'expires_at': expires_at
+        })
+
+    except Exception as e:
+        print(f"❌ Erreur lors de la génération du token: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/transcribe', methods=['POST'])
@@ -243,25 +302,35 @@ Fais des phrases courtes et claires."""
 def text_to_speech():
     """
     Convertit le texte en audio avec ElevenLabs et renvoie le fichier audio.
+    Supporte les multi-voix pour le système d'agents.
     """
     try:
         data = request.json
         text = data.get('text', '')
+        agent_id = data.get('agent', None)  # Optionnel: pour multi-agent
 
         if not text:
             return jsonify({'error': 'Aucun texte fourni'}), 400
 
-        print(f"🔊 Génération audio pour: '{text}'")
+        # Choisir la voix: agent spécifique ou voix par défaut
+        if agent_id and agent_id in AGENT_VOICES:
+            voice_id = AGENT_VOICES[agent_id]
+            print(f"🎵 Génération audio pour agent '{agent_id}' ({voice_id}): '{text[:50]}...'")
+        else:
+            voice_id = ELEVENLABS_VOICE_ID
+            print(f"🔊 Génération audio pour: '{text[:50]}...'")
 
-        # Générer l'audio avec ElevenLabs (nouvelle API)
+        # Générer l'audio avec ElevenLabs
         audio_generator = elevenlabs_client.text_to_speech.convert(
-            voice_id=ELEVENLABS_VOICE_ID,
+            voice_id=voice_id,
             text=text,
             model_id="eleven_multilingual_v2"
         )
 
         # Convertir en bytes
         audio_bytes = b"".join(audio_generator)
+
+        print(f"✅ Audio généré: {len(audio_bytes)} bytes")
 
         # Retourner l'audio
         return send_file(
@@ -272,6 +341,8 @@ def text_to_speech():
 
     except Exception as e:
         print(f"❌ Erreur de synthèse vocale: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)

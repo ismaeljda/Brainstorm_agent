@@ -4,7 +4,16 @@ Service RAG (Retrieval Augmented Generation) avec Pinecone.
 
 import os
 from typing import List, Dict, Any, Optional
-from pinecone import Pinecone, ServerlessSpec
+
+# Import Pinecone optionnel (désactivé pour utiliser Qdrant uniquement)
+try:
+    from pinecone import Pinecone, ServerlessSpec
+    PINECONE_AVAILABLE = True
+except ImportError:
+    PINECONE_AVAILABLE = False
+    Pinecone = None
+    ServerlessSpec = None
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.document_loaders import (
