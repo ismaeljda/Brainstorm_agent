@@ -242,8 +242,8 @@ Réponds UNIQUEMENT avec un mot : strategie, tech, creatif, facilitateur, ou non
 
         # Créer une tâche pour l'agent
         task = Task(
-            description=f"{context}\n\nRéponds en FRANÇAIS. Maximum 1-2 phrases. Sois ULTRA CONCIS.",
-            expected_output="1-2 phrases MAXIMUM. Direct et actionable. EN FRANÇAIS.",
+            description=f"{context}\n\nSois concis tout en conservant l'intégrité de l'information",
+            expected_output="phrases claires. Direct et actionable.",
             agent=agent
         )
 
@@ -321,7 +321,7 @@ Réponds UNIQUEMENT avec un mot : strategie, tech, creatif, facilitateur, ou non
             Synthèse finale de la réunion
         """
         print("\n" + "=" * 80)
-        print("🎯 RÉUNION MULTI-AGENTS")
+        print("RÉUNION MULTI-AGENTS")
         print("=" * 80)
         print(f"Objectif : {self.objective}")
         print("\nTapez votre message pour intervenir (ou 'exit' pour quitter)")
@@ -406,7 +406,7 @@ Réponds UNIQUEMENT avec un mot : strategie, tech, creatif, facilitateur, ou non
         Returns:
             Résumé formaté
         """
-        summary = f"\n📋 RÉSUMÉ DE LA RÉUNION\n"
+        summary = f"\nRÉSUMÉ DE LA RÉUNION\n"
         summary += f"Objectif : {self.objective}\n"
         summary += f"Nombre d'interventions : {len(self.conversation_history)}\n\n"
 
