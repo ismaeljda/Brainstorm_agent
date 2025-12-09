@@ -35,6 +35,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from orchestrator import Orchestrator
 from context import OrganizationalContext, ContextStorage
 from context.qdrant_service import get_qdrant_service
+from middleware.firebase_auth import FirebaseAuthMiddleware, get_current_user
+from models.user import UserCreate, UserUpdate, UserProfile
+from services.user_service import get_user_service
 
 # Import Celery tasks (import lazy pour éviter les dépendances circulaires)
 # Les tasks seront importés seulement quand on en a besoin
@@ -886,6 +889,120 @@ async def text_to_speech(request: SpeakRequest):
         print(f"❌ Erreur lors de la génération audio: {e}")
         import traceback
         traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==================== USER MANAGEMENT ====================
+
+@app.post("/api/users/me", response_model=UserProfile)
+async def create_or_get_user(user_data: UserCreate, request: Request):
+    """
+    Crée ou récupère le profil utilisateur.
+    Appelé lors de la première connexion Firebase.
+    """
+    try:
+        user_service = get_user_service()
+
+        # Vérifier si l'utilisateur existe
+        existing_user = user_service.get_user(user_data.uid)
+
+        if existing_user:
+            # Mettre à jour last_login
+            user_service.update_last_login(user_data.uid)
+            return existing_user
+
+        # Créer nouvel utilisateur
+        new_user = user_service.create_user(user_data)
+        if not new_user:
+            raise HTTPException(status_code=500, detail="Erreur création utilisateur")
+
+        return new_user
+
+    except Exception as e:
+        print(f"❌ Erreur create_or_get_user : {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/users/me", response_model=UserProfile)
+async def get_my_profile(request: Request):
+    """Récupère le profil de l'utilisateur connecté."""
+    try:
+        # Récupérer l'utilisateur depuis le middleware Firebase
+        user = get_current_user(request)
+        user_service = get_user_service()
+
+        profile = user_service.get_user(user["uid"])
+        if not profile:
+            raise HTTPException(status_code=404, detail="Profil non trouvé")
+
+        return profile
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur get_my_profile : {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/api/users/me", response_model=UserProfile)
+async def update_my_profile(user_data: UserUpdate, request: Request):
+    """Met à jour le profil de l'utilisateur connecté."""
+    try:
+        user = get_current_user(request)
+        user_service = get_user_service()
+
+        updated_profile = user_service.update_user(user["uid"], user_data)
+        if not updated_profile:
+            raise HTTPException(status_code=404, detail="Profil non trouvé")
+
+        return updated_profile
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur update_my_profile : {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/users/me/meetings")
+async def get_my_meetings(request: Request, limit: int = 10):
+    """Récupère l'historique des réunions de l'utilisateur."""
+    try:
+        user = get_current_user(request)
+        user_service = get_user_service()
+
+        meetings = user_service.get_user_meetings(user["uid"], limit)
+
+        return {
+            "status": "ok",
+            "meetings": [meeting.model_dump() for meeting in meetings]
+        }
+
+    except Exception as e:
+        print(f"❌ Erreur get_my_meetings : {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/users/me/stats")
+async def get_my_stats(request: Request):
+    """Récupère les statistiques de l'utilisateur."""
+    try:
+        user = get_current_user(request)
+        user_service = get_user_service()
+
+        stats = user_service.get_user_stats(user["uid"])
+        if not stats:
+            raise HTTPException(status_code=404, detail="Statistiques non disponibles")
+
+        return {
+            "status": "ok",
+            "stats": stats.model_dump()
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur get_my_stats : {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

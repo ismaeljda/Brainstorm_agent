@@ -7,9 +7,11 @@ import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 import { ref, uploadBytes } from 'firebase/storage';
 import { storage } from '../firebase';
+import { useAuth } from '../components/Auth';
 
 export const ConfigPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   // État du formulaire
   const [objective, setObjective] = useState('');
@@ -91,14 +93,44 @@ export const ConfigPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            🧠 BrainStormIA
-          </h1>
-          <p className="text-gray-600">
-            Configurez votre réunion multi-agents augmentée par IA
-          </p>
+        {/* Header with user menu */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-center flex-1">
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                🧠 BrainStormIA
+              </h1>
+              <p className="text-gray-600">
+                Configurez votre réunion multi-agents augmentée par IA
+              </p>
+            </div>
+
+            {/* User profile menu */}
+            <div className="flex items-center gap-3 bg-white rounded-lg shadow px-4 py-2">
+              {user?.photoURL && (
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName || 'User'}
+                  className="w-8 h-8 rounded-full"
+                />
+              )}
+              <div className="text-sm">
+                <p className="font-medium text-gray-900">
+                  {user?.displayName || 'Utilisateur'}
+                </p>
+                <p className="text-gray-500 text-xs">
+                  {user?.email}
+                </p>
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="ml-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900
+                         hover:bg-gray-100 rounded-md transition-colors"
+              >
+                Déconnexion
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Formulaire */}

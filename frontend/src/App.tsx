@@ -5,6 +5,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, ProtectedRoute } from './components/Auth';
+import { Login } from './pages/Login';
 import ConfigPage from './pages/Config';
 import MeetingPage from './pages/Meeting';
 
@@ -13,9 +14,22 @@ const App: React.FC = () => {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Page d'accueil : Configuration */}
+          {/* Page de login */}
+          <Route path="/login" element={<Login />} />
+
+          {/* Page d'accueil : rediriger vers config si authentifié, sinon login */}
           <Route
             path="/"
+            element={
+              <ProtectedRoute>
+                <Navigate to="/config" replace />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Page de configuration */}
+          <Route
+            path="/config"
             element={
               <ProtectedRoute>
                 <ConfigPage />
