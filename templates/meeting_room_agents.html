@@ -292,6 +292,9 @@
         let mediaStream = null;
         let currentAgent = null;
         let conversationHistory = [];
+        let conversationTurns = 0; // Compteur de tours de conversation
+        let maxTurns = 8; // Maximum de tours avant de s'arrêter
+        let isAutoConversation = false; // Flag pour conversation automatique
 
         const status = document.getElementById('status');
         const connectBtn = document.getElementById('connectBtn');
@@ -342,6 +345,41 @@
             `;
             transcript.appendChild(msg);
             transcript.scrollTop = transcript.scrollHeight;
+        }
+
+        // Fonction pour déclencher automatiquement la suite de la conversation
+        function triggerNextAgent() {
+            if (!ws || !isAutoConversation) return;
+
+            conversationTurns++;
+            console.log(`🔄 Tour ${conversationTurns}/${maxTurns} - Déclenchement du prochain agent...`);
+
+            // Arrêter après maxTurns pour éviter une boucle infinie
+            if (conversationTurns >= maxTurns) {
+                console.log('✅ Conversation terminée après', maxTurns, 'tours');
+                isAutoConversation = false;
+                return;
+            }
+
+            // Attendre 2 secondes puis envoyer un message silencieux pour continuer
+            setTimeout(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'conversation.item.create',
+                        item: {
+                            type: 'message',
+                            role: 'user',
+                            content: [{
+                                type: 'input_text',
+                                text: 'Continue la discussion. Quel agent doit parler maintenant?'
+                            }]
+                        }
+                    }));
+
+                    // Déclencher la génération de réponse
+                    ws.send(JSON.stringify({ type: 'response.create' }));
+                }
+            }, 2000); // 2 secondes de délai
         }
 
         async function connect() {
@@ -407,6 +445,10 @@
                     switch (data.type) {
                         case 'conversation.item.input_audio_transcription.completed':
                             addMessage('user', data.transcript);
+                            // Activer le mode auto-conversation et reset le compteur
+                            isAutoConversation = true;
+                            conversationTurns = 0;
+                            console.log('🎬 Démarrage de la conversation automatique entre agents...');
                             break;
 
                         case 'response.text.done':
@@ -434,13 +476,30 @@
                                         highlightAgent(agentId);
                                         addMessage(agentId, message);
 
-                                        // Generate speech with ElevenLabs
-                                        generateAndPlaySpeech(agentId, message);
+                                        // Le Facilitateur n'a pas d'audio (juste du texte) pour éviter les chevauchements
+                                        if (agentId === 'facilitateur') {
+                                            console.log('📝 Facilitateur (texte seulement)');
+                                            highlightAgent(null);
+                                            // Déclencher le prochain agent immédiatement
+                                            if (isAutoConversation) {
+                                                setTimeout(() => triggerNextAgent(), 500);
+                                            }
+                                        } else {
+                                            // Generate speech with ElevenLabs pour les autres agents
+                                            // Le prochain agent sera déclenché automatiquement dans audio.onended
+                                            generateAndPlaySpeech(agentId, message);
+                                        }
                                     } else {
                                         // Fallback: use Facilitateur
                                         highlightAgent('facilitateur');
                                         addMessage('facilitateur', text);
-                                        generateAndPlaySpeech('facilitateur', text);
+                                        console.log('📝 Facilitateur (texte seulement)');
+                                        highlightAgent(null);
+
+                                        // Déclencher le prochain agent immédiatement
+                                        if (isAutoConversation) {
+                                            setTimeout(() => triggerNextAgent(), 500);
+                                        }
                                     }
                                 }
                             }
@@ -533,6 +592,11 @@
                     URL.revokeObjectURL(audioUrl);
                     highlightAgent(null);
                     updateStatus('🟢 Meeting en cours - À vous de parler!', 'connected');
+
+                    // Déclencher le prochain agent APRÈS que l'audio soit terminé
+                    if (isAutoConversation) {
+                        setTimeout(() => triggerNextAgent(), 1000); // 1 seconde après la fin de l'audio
+                    }
                 };
 
                 console.log('✅ Playing audio');
@@ -551,6 +615,8 @@
             ws = null;
             audioContext = null;
             mediaStream = null;
+            isAutoConversation = false;
+            conversationTurns = 0;
 
             highlightAgent(null);
             updateStatus('🔴 Meeting terminé', 'disconnected');

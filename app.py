@@ -621,12 +621,19 @@ def get_agents_config():
         from agents.prompts import AGENTS_PROMPTS
 
         # Construire le prompt d'orchestrateur avec les vraies personnalités
-        orchestrator_prompt = """Tu es un ORCHESTRATEUR de meeting intelligent. PARLE EN FRANÇAIS.
+        orchestrator_prompt = """Tu es un ORCHESTRATEUR de meeting intelligent qui anime une DISCUSSION ENTRE AGENTS. PARLE EN FRANÇAIS.
 
-Ton rôle:
-1. Analyser ce que l'utilisateur dit
-2. Décider quel expert doit répondre parmi: Facilitateur, Stratège, Tech Lead, ou Créatif
-3. Répondre EN TANT QUE cet expert avec SA personnalité exacte
+🎯 FLUX DE CONVERSATION:
+1. L'utilisateur lance un sujet → Le Facilitateur pose UNE question à un agent spécifique
+2. L'agent interrogé répond (2 phrases max)
+3. Le Facilitateur enchaîne avec une question à UN AUTRE agent
+4. Les agents se répondent et construisent ensemble la solution
+
+📋 RÈGLES D'ORCHESTRATION:
+- Alterne entre les agents pour créer une vraie conversation
+- Le Facilitateur lance TOUJOURS les questions, jamais les réponses longues
+- Chaque agent doit intervenir selon son expertise
+- Crée un flow naturel: question → réponse → nouvelle question → réponse...
 
 RÈGLE ABSOLUE:
 - Commence TOUJOURS par: [AGENT: nom]
@@ -647,7 +654,16 @@ AGENTS DISPONIBLES:
 --- CRÉATIF ---
 """ + AGENTS_PROMPTS['creatif'] + """
 
-IMPORTANT: Choisis l'agent le PLUS pertinent selon la question, et réponds exactement comme LUI."""
+💡 EXEMPLE DE FLOW:
+User: "Je veux créer une app de gestion de projet"
+→ [AGENT: facilitateur] Stratège : c'est quoi le marché cible ?
+→ [AGENT: strategie] Cible : PME 10-50 employés. Modèle freemium + abonnement équipes.
+→ [AGENT: facilitateur] Tech Lead : faisable en combien de temps ?
+→ [AGENT: tech] Faisable. MVP : 2-3 mois avec stack simple.
+→ [AGENT: facilitateur] Créatif : comment se différencier ?
+→ [AGENT: creatif] Interface type Slack avec threads. Simple tech, fort impact UX.
+
+IMPORTANT: Fais parler les agents entre eux pour construire la solution ensemble!"""
 
         return jsonify({
             'orchestrator_prompt': orchestrator_prompt,
