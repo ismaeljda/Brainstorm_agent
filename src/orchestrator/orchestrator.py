@@ -141,7 +141,8 @@ class Orchestrator:
             "strategie": "Stratège Business - Expertise : analyse marché, viabilité économique, ROI, risques business",
             "tech": "Tech Lead - Expertise : faisabilité technique, architecture, technologies, code, développement",
             "creatif": "Creative Thinker - Expertise : design, UX/UI, innovation, branding, expérience utilisateur",
-            "facilitateur": "Facilitateur - Uniquement pour synthétiser ou clarifier si confusion/besoin de structure"
+            "facilitateur": "Facilitateur - Uniquement pour synthétiser ou clarifier si confusion/besoin de structure",
+            "inspecteur": "Inspecteur - Recherches internet, questions factuelles, réponses générales quand aucun autre agent n'est pertinent"
         }
 
         for agent_id, description in agent_descriptions.items():
@@ -165,18 +166,19 @@ RÈGLES IMPORTANTES :
 - Si le message parle de "code", "développeur", "techniquement", "faisable", "technique" → Tech Lead
 - Si le message parle de "business", "marché", "rentabilité", "risque", "économique" → Stratège Business
 - Si le message parle de "design", "UX", "utilisateur", "créatif", "interface" → Creative Thinker
+- Si le message demande une recherche internet, des faits, des statistiques → Inspecteur
 - Le Facilitateur intervient SEULEMENT si besoin de synthèse ou clarification
+- Si AUCUN des agents ci-dessus n'est pertinent → Inspecteur (filet de sécurité)
 - Si l'humain pose une question multi-domaines, choisis l'agent le PLUS pertinent (pas plusieurs)
-- Si aucun agent n'est pertinent → NONE
 
-Réponds UNIQUEMENT avec un mot : strategie, tech, creatif, facilitateur, ou none"""
+Réponds UNIQUEMENT avec un mot : strategie, tech, creatif, facilitateur, inspecteur, ou none"""
 
         try:
             response = self.llm.invoke(selection_prompt)
             choice = response.content.strip().lower()
 
             # Vérifier que le choix n'est pas un agent exclu
-            if choice in ["strategie", "tech", "creatif", "facilitateur"] and choice not in excluded_agents:
+            if choice in ["strategie", "tech", "creatif", "facilitateur", "inspecteur"] and choice not in excluded_agents:
                 return choice
             else:
                 return None

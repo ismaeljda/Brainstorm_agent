@@ -49,15 +49,58 @@
             text-transform: uppercase;
         }
 
-        .agents-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2px;
+        /* Carousel Container */
+        .carousel-container {
             max-width: 1200px;
             width: 100%;
             margin-bottom: 50px;
+            position: relative;
+        }
+
+        .agents-carousel {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 20px 0;
+            scrollbar-width: thin;
+            scrollbar-color: #000000 #FFFFFF;
+        }
+
+        .agents-carousel::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .agents-carousel::-webkit-scrollbar-track {
+            background: #FFFFFF;
+            border: 2px solid #000000;
+        }
+
+        .agents-carousel::-webkit-scrollbar-thumb {
             background: #000000;
-            padding: 2px;
+        }
+
+        .carousel-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .carousel-btn {
+            background: #FFFFFF;
+            border: 2px solid #000000;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+
+        .carousel-btn:hover {
+            background: #000000;
+            color: #FFFFFF;
         }
 
         .agent-card {
@@ -67,6 +110,8 @@
             transition: all 0.2s ease;
             background: #FFFFFF;
             position: relative;
+            min-width: 280px;
+            flex-shrink: 0;
         }
 
         .agent-card:hover {
@@ -106,6 +151,10 @@
         .orb-facilitateur {
             background: #ffffff;
             border: 2px solid #000000;
+        }
+
+        .orb-inspecteur {
+            background: #ff0000;
         }
 
         .agent-name {
@@ -165,6 +214,7 @@
             justify-content: space-between;
             align-items: center;
             background: #FFFFFF;
+            position: relative;
         }
 
         .chat-title {
@@ -270,6 +320,10 @@
             border: 2px solid #000000;
         }
 
+        .message-inspecteur .message-orb {
+            background: #ff0000;
+        }
+
         .message-human .message-orb {
             background: #000000;
         }
@@ -359,13 +413,10 @@
         }
 
         .back-btn {
-            position: absolute;
-            top: 30px;
-            left: 30px;
             background: #FFFFFF;
             color: #000000;
             border: 2px solid #000000;
-            padding: 1rem 2rem;
+            padding: 0.75rem 1.5rem;
             font-size: 0.875rem;
             font-weight: 500;
             cursor: pointer;
@@ -373,6 +424,8 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
             transition: all 0.2s ease;
+            order: -1;
+            margin-right: auto;
         }
 
         .back-btn:hover {
@@ -394,33 +447,47 @@
             placeholder="ENTER YOUR MEETING OBJECTIVE..."
         />
         
-        <div class="agents-grid">
-            <!-- Facilitateur -->
-            <div class="agent-card" data-agent="facilitateur">
-                <div class="agent-orb orb-facilitateur"></div>
-                <div class="agent-name">FACILITATEUR</div>
-                <div class="agent-desc">Animates discussions, synthesizes ideas, and drives consensus</div>
+        <div class="carousel-container">
+            <div class="agents-carousel" id="agentsCarousel">
+                <!-- Facilitateur -->
+                <div class="agent-card" data-agent="facilitateur">
+                    <div class="agent-orb orb-facilitateur"></div>
+                    <div class="agent-name">FACILITATEUR</div>
+                    <div class="agent-desc">Animates discussions, synthesizes ideas, and drives consensus</div>
+                </div>
+                
+                <!-- Stratège Business -->
+                <div class="agent-card" data-agent="strategie">
+                    <div class="agent-orb orb-strategie"></div>
+                    <div class="agent-name">STRATÈGE</div>
+                    <div class="agent-desc">Analyzes market viability, ROI, and business risks</div>
+                </div>
+                
+                <!-- Tech Lead -->
+                <div class="agent-card" data-agent="tech">
+                    <div class="agent-orb orb-tech"></div>
+                    <div class="agent-name">TECH LEAD</div>
+                    <div class="agent-desc">Evaluates technical feasibility and architecture</div>
+                </div>
+                
+                <!-- Creative Thinker -->
+                <div class="agent-card" data-agent="creatif">
+                    <div class="agent-orb orb-creatif"></div>
+                    <div class="agent-name">CREATIVE</div>
+                    <div class="agent-desc">Generates innovative ideas and UX solutions</div>
+                </div>
+
+                <!-- Inspecteur -->
+                <div class="agent-card" data-agent="inspecteur">
+                    <div class="agent-orb orb-inspecteur"></div>
+                    <div class="agent-name">INSPECTEUR</div>
+                    <div class="agent-desc">Conducts internet research and provides factual information</div>
+                </div>
             </div>
-            
-            <!-- Stratège Business -->
-            <div class="agent-card" data-agent="strategie">
-                <div class="agent-orb orb-strategie"></div>
-                <div class="agent-name">STRATÈGE</div>
-                <div class="agent-desc">Analyzes market viability, ROI, and business risks</div>
-            </div>
-            
-            <!-- Tech Lead -->
-            <div class="agent-card" data-agent="tech">
-                <div class="agent-orb orb-tech"></div>
-                <div class="agent-name">TECH LEAD</div>
-                <div class="agent-desc">Evaluates technical feasibility and architecture</div>
-            </div>
-            
-            <!-- Creative Thinker -->
-            <div class="agent-card" data-agent="creatif">
-                <div class="agent-orb orb-creatif"></div>
-                <div class="agent-name">CREATIVE</div>
-                <div class="agent-desc">Generates innovative ideas and UX solutions</div>
+
+            <div class="carousel-nav">
+                <button class="carousel-btn" id="prevBtn">◄ PREV</button>
+                <button class="carousel-btn" id="nextBtn">NEXT ►</button>
             </div>
         </div>
         
@@ -459,6 +526,7 @@
             'strategie': 'Stratège Business',
             'tech': 'Tech Lead',
             'creatif': 'Creative Thinker',
+            'inspecteur': 'Inspecteur',
             'human': 'You'
         };
 
@@ -466,8 +534,22 @@
             'facilitateur': '#ffffff',
             'strategie': '#1e3a8a',
             'tech': '#00ff00',
-            'creatif': '#a855f7'
+            'creatif': '#a855f7',
+            'inspecteur': '#ff0000'
         };
+
+        // Carousel Navigation
+        const carousel = document.getElementById('agentsCarousel');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        prevBtn.addEventListener('click', () => {
+            carousel.scrollBy({ left: -320, behavior: 'smooth' });
+        });
+
+        nextBtn.addEventListener('click', () => {
+            carousel.scrollBy({ left: 320, behavior: 'smooth' });
+        });
 
         // Select facilitator by default
         window.addEventListener('DOMContentLoaded', () => {
