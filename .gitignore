@@ -1,35 +1,29 @@
+# Environment variables (contains API keys - NEVER commit!)
+.env
+src/.env
+*.env
+.env.*
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual Environment
 venv/
 env/
 ENV/
-env.bak/
-venv.bak/
-*/.env
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
 
 # IDE
 .vscode/
@@ -39,39 +33,22 @@ venv.bak/
 *~
 .DS_Store
 
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# Logs
+# Temporary files
+uploads/
+*.tmp
 *.log
-logs/
+*.wav
+*.webm
 
-# Flask
-instance/
-.webassets-cache
+# Build outputs
+dist/
+build/
+*.egg
 
-# CrewAI
-.crewai/
-
-# Pytest
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
 # Temporary files
 *.tmp
