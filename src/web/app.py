@@ -10,6 +10,10 @@ from threading import Thread, Lock
 from queue import Queue
 from dotenv import load_dotenv
 
+# Désactiver les traces CrewAI AVANT TOUT
+os.environ['OTEL_SDK_DISABLED'] = 'true'
+os.environ['CREWAI_TELEMETRY_OPT_OUT'] = 'true'
+
 # Charger les variables d'environnement
 load_dotenv()
 
@@ -135,31 +139,64 @@ def send_message():
 
     orchestrator = meeting_state['orchestrator']
     if orchestrator:
-        # Ajouter le message humain
-        orchestrator.speak('human', message)
+        # Lancer la réponse dans un thread séparé pour ne pas bloquer
+        def process_message():
+            try:
+                print(f"📨 Message reçu de l'utilisateur: {message[:50]}...")
+                
+                # Ajouter le message humain
+                orchestrator.speak('human', message)
+                print("✅ Message humain ajouté à l'historique")
 
-        # Déclencher des réponses d'agents (max 3 pour éviter la surcharge)
-        context = orchestrator._build_context()
+                # Déclencher des réponses d'agents (max 3 pour éviter la surcharge)
+                context = orchestrator._build_context()
 
-        # Faire réagir jusqu'à 3 agents pertinents
-        agents_spoken = []
-        max_responses = 3
+                # Faire réagir jusqu'à 3 agents pertinents
+                agents_spoken = []
+                max_responses = 3
 
-        for _ in range(max_responses):
-            next_speaker = orchestrator._select_next_speaker(context)
+                for i in range(max_responses):
+                    print(f"🔄 Tentative {i+1}/{max_responses} de sélection d'agent...")
+                    next_speaker = orchestrator._select_next_speaker(context)
+                    print(f"👤 Agent sélectionné: {next_speaker}")
 
-            # Arrêter si aucun agent pertinent ou si c'est un agent qui a déjà parlé
-            if not next_speaker or next_speaker in agents_spoken:
-                break
+                    # Arrêter si aucun agent pertinent
+                    if not next_speaker:
+                        print("⚠️ Aucun agent pertinent sélectionné")
+                        break
+                    
+                    # Si l'agent a déjà parlé dans cette série, passer au suivant
+                    if next_speaker in agents_spoken:
+                        print(f"⏭️ {next_speaker} a déjà parlé, on continue...")
+                        continue
 
-            response = orchestrator._get_agent_response(next_speaker, context)
-            orchestrator.speak(next_speaker, response)
-            agents_spoken.append(next_speaker)
+                    print(f"💬 Génération de la réponse pour {next_speaker}...")
+                    response = orchestrator._get_agent_response(next_speaker, context)
+                    
+                    if response and response.strip():
+                        print(f"✅ Réponse générée ({len(response)} caractères)")
+                        orchestrator.speak(next_speaker, response)
+                        agents_spoken.append(next_speaker)
 
-            # Reconstruire le contexte pour la prochaine sélection
-            context = orchestrator._build_context()
+                        # Reconstruire le contexte pour la prochaine sélection
+                        context = orchestrator._build_context()
+                    else:
+                        print("⚠️ Réponse vide, arrêt")
+                        break
+                
+                print(f"✅ Traitement terminé, {len(agents_spoken)} agents ont répondu")
+                        
+            except Exception as e:
+                print(f"❌ Erreur lors du traitement du message: {e}")
+                import traceback
+                traceback.print_exc()
 
-        return jsonify({'status': 'ok', 'agents_responded': len(agents_spoken)})
+        # Lancer dans un thread
+        thread = Thread(target=process_message)
+        thread.daemon = True
+        thread.start()
+
+        return jsonify({'status': 'ok', 'message': 'Message envoyé'})
     else:
         return jsonify({'status': 'error', 'message': 'Réunion non démarrée'}), 400
 

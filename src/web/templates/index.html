@@ -549,7 +549,8 @@
             
             if (!message) return;
             
-            addMessage('human', message, false);
+            // Ne pas ajouter ici, le backend le fera via orchestrator.speak()
+            // et on le récupèrera via le polling
             input.value = '';
             
             // Send to backend

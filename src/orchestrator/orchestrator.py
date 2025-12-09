@@ -10,6 +10,9 @@ from langchain_openai import ChatOpenAI
 from agents.config import AGENTS_CONFIG, RESET_COLOR, HUMAN_COLOR
 from agents.prompts import AGENTS_PROMPTS
 
+# Désactiver les traces CrewAI dès le début
+os.environ['OTEL_SDK_DISABLED'] = 'true'
+
 
 class Orchestrator:
     """
@@ -247,14 +250,25 @@ Réponds UNIQUEMENT avec un mot : strategie, tech, creatif, facilitateur, ou non
             agent=agent
         )
 
-        # Exécuter avec CrewAI
-        crew = Crew(
-            agents=[agent],
-            tasks=[task],
-            verbose=False
-        )
-
-        result = crew.kickoff()
+        # Exécuter avec CrewAI sans traces
+        import sys
+        import io
+        
+        # Sauvegarder stdin original et le remplacer
+        original_stdin = sys.stdin
+        sys.stdin = io.StringIO('n\n')  # Répondre automatiquement 'n' aux prompts
+        
+        try:
+            crew = Crew(
+                agents=[agent],
+                tasks=[task],
+                verbose=False
+            )
+            
+            result = crew.kickoff(inputs={})
+        finally:
+            # Restaurer stdin
+            sys.stdin = original_stdin
 
         # Extraire le texte de la réponse
         if hasattr(result, 'raw'):
