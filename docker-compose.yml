@@ -36,6 +36,8 @@ services:
       - ./src:/app/src
       - ./data:/app/data
       - ./.env:/app/.env
+    env_file:
+      - .env
     environment:
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
@@ -58,6 +60,8 @@ services:
       - ./src:/app/src
       - ./data:/app/data
       - ./.env:/app/.env
+    env_file:
+      - .env
     environment:
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333

@@ -95,7 +95,7 @@ class WebSocketOrchestrator(Orchestrator):
             except Exception as e:
                 print(f"⚠️  Erreur TTS pour {agent_id}: {e}")
 
-        # Envoyer via WebSocket
+        # Envoyer via WebSocket (callback synchrone via Redis)
         if self.websocket_callback:
             try:
                 # Créer le message WebSocket
@@ -107,8 +107,8 @@ class WebSocketOrchestrator(Orchestrator):
                     "job_id": self.job_id
                 }
 
-                # Envoyer (doit être géré de manière async)
-                asyncio.run(self.websocket_callback(self.job_id, ws_message))
+                # Appeler le callback synchrone
+                self.websocket_callback(self.job_id, ws_message)
 
             except Exception as e:
                 print(f"⚠️  Erreur WebSocket : {e}")
@@ -142,17 +142,15 @@ def start_meeting_task(
     max_turns = meeting_params.get("max_turns", 20)
     model = meeting_params.get("model", "gpt-4o-mini")
 
-    # Fonction callback pour WebSocket (sera implémenté côté FastAPI)
-    async def websocket_callback(job_id: str, message: dict):
+    # Fonction callback pour WebSocket (via Redis PubSub)
+    def websocket_callback(job_id: str, message: dict):
         """
-        Callback pour envoyer des messages WebSocket.
-        En production, ceci devrait utiliser Redis PubSub ou similaire.
+        Callback synchrone pour envoyer des messages WebSocket via Redis.
         """
-        # Pour l'instant, on stocke dans Redis
         import redis
+        import json
         r = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
-        r.rpush(f"ws:{job_id}", str(message))
-        r.expire(f"ws:{job_id}", 3600)  # 1 heure
+        r.publish(f"ws:{job_id}", json.dumps(message))
 
     try:
         # Créer l'orchestrateur
@@ -222,12 +220,12 @@ def start_meeting_task(
             orchestrator.speak("facilitateur", final_summary)
 
         # Message de fin via WebSocket
-        asyncio.run(websocket_callback(job_id, {
+        websocket_callback(job_id, {
             "type": "end",
             "job_id": job_id,
             "summary": orchestrator._generate_summary(),
             "turns": len(orchestrator.conversation_history)
-        }))
+        })
 
         return {
             "status": "completed",
@@ -237,15 +235,18 @@ def start_meeting_task(
         }
 
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
         print(f"❌ Erreur meeting task : {e}")
+        print(f"📋 Traceback complet:\n{error_trace}")
 
         # Envoyer erreur via WebSocket
         try:
-            asyncio.run(websocket_callback(job_id, {
+            websocket_callback(job_id, {
                 "type": "error",
                 "job_id": job_id,
                 "error": str(e)
-            }))
+            })
         except:
             pass
 

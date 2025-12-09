@@ -9,7 +9,7 @@ from crewai import Agent, Task, Crew
 from langchain_openai import ChatOpenAI
 from agents.config import AGENTS_CONFIG, RESET_COLOR, HUMAN_COLOR
 from agents.prompts import AGENTS_PROMPTS
-from context import ContextStorage, get_rag_service
+from context import ContextStorage, get_qdrant_service
 
 
 class Orchestrator:
@@ -37,8 +37,8 @@ class Orchestrator:
         context_storage = ContextStorage()
         self.organizational_context = context_storage.load()
 
-        # Service RAG
-        self.rag_service = get_rag_service()
+        # Service RAG (Qdrant)
+        self.rag_service = get_qdrant_service()
 
         # Créer les agents CrewAI
         self.agents = self._create_agents()

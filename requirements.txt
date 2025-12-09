@@ -25,7 +25,6 @@ redis>=5.0.0
 
 # RAG (Vector Database)
 qdrant-client>=1.15.1
-pinecone-client>=3.0.0
 
 # Text-to-Speech
 elevenlabs>=1.0.0

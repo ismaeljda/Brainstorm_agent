@@ -590,38 +590,53 @@ async def websocket_meeting(websocket: WebSocket, job_id: str):
             "message": "Connecté au streaming de la réunion"
         })
 
-        # Boucle d'écoute Redis (polling)
-        while True:
-            # Récupérer les nouveaux messages depuis Redis
-            message = r.lpop(f"ws:{job_id}")
+        # S'abonner au canal Redis PubSub
+        pubsub = r.pubsub()
+        pubsub.subscribe(f"ws:{job_id}")
 
-            if message:
-                try:
-                    # Parser et envoyer le message
-                    msg_dict = eval(message.decode('utf-8'))
-                    await websocket.send_json(msg_dict)
+        # Timeout pour get_message (non-bloquant)
+        import time
 
-                    # Si message de fin, arrêter
-                    if msg_dict.get("type") == "end":
-                        break
+        # Boucle d'écoute Redis PubSub (non-bloquante)
+        try:
+            meeting_ended = False
+            while not meeting_ended:
+                # Récupérer message avec timeout court (non-bloquant)
+                message = pubsub.get_message(timeout=0.1)
 
-                except Exception as e:
-                    print(f"❌ Erreur parsing message : {e}")
+                if message and message['type'] == 'message':
+                    try:
+                        # Parser et envoyer le message
+                        import json
+                        msg_dict = json.loads(message['data'])
+                        print(f"📤 Envoi WebSocket: {msg_dict.get('type')}")
+                        await websocket.send_json(msg_dict)
 
-            # Attendre un peu avant de re-checker
-            await asyncio.sleep(0.5)
+                        # Si message de fin ou erreur, arrêter
+                        if msg_dict.get("type") in ["end", "completed"]:
+                            meeting_ended = True
 
-            # Vérifier si le job est terminé
-            from src.tasks import celery_app
-            task_result = celery_app.AsyncResult(job_id)
-            if task_result.ready():
-                # Envoyer le résultat final
-                await websocket.send_json({
-                    "type": "completed",
-                    "job_id": job_id,
-                    "result": task_result.result
-                })
-                break
+                    except Exception as e:
+                        print(f"❌ Erreur parsing message : {e}")
+
+                # Petit délai pour ne pas surcharger le CPU
+                await asyncio.sleep(0.1)
+
+                # Vérifier périodiquement si le job est terminé
+                from src.tasks import celery_app
+                task_result = celery_app.AsyncResult(job_id)
+                if task_result.ready() and not meeting_ended:
+                    # Envoyer le résultat final si pas déjà envoyé
+                    await websocket.send_json({
+                        "type": "completed",
+                        "job_id": job_id,
+                        "result": task_result.result
+                    })
+                    meeting_ended = True
+
+        finally:
+            pubsub.unsubscribe(f"ws:{job_id}")
+            pubsub.close()
 
     except WebSocketDisconnect:
         print(f"🔌 Client déconnecté : {job_id}")
