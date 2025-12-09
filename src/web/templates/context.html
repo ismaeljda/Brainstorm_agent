@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contexte Organisationnel - DebateHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .nav-button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .nav-button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .custom-fields {
+            margin-top: 20px;
+        }
+
+        .custom-field {
+            display: grid;
+            grid-template-columns: 2fr 1fr 3fr auto;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-field input,
+        .custom-field select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .upload-area:hover {
+            background: #f0f4ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e8f0ff;
+            border-color: #667eea;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .documents-list {
+            margin-top: 20px;
+        }
+
+        .document-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .document-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .document-icon {
+            font-size: 24px;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #ddd;
+        }
+
+        .preview-context {
+            margin-top: 20px;
+            padding: 20px;
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .field-type-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .type-text { background: #e3f2fd; color: #1976d2; }
+        .type-number { background: #fff3e0; color: #f57c00; }
+        .type-boolean { background: #f3e5f5; color: #7b1fa2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Contexte Organisationnel</h1>
+            <p>Configurez le contexte de votre entreprise pour des agents intelligents</p>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="/" class="nav-button">← Retour aux réunions</a>
+            <button class="nav-button" onclick="loadContext()">🔄 Recharger</button>
+        </div>
+
+        <div id="status-message" class="status-message"></div>
+
+        <!-- Section: Informations de base -->
+        <div class="section">
+            <h2>🏢 Informations de base</h2>
+
+            <div class="form-group">
+                <label for="company-name">Nom de l'entreprise *</label>
+                <input type="text" id="company-name" placeholder="Ex: Acme Corp">
+            </div>
+
+            <div class="form-group">
+                <label for="industry">Secteur / Industrie *</label>
+                <input type="text" id="industry" placeholder="Ex: Fintech, E-commerce, SaaS...">
+            </div>
+
+            <div class="form-group">
+                <label for="strategic-goals">Objectifs stratégiques</label>
+                <textarea id="strategic-goals" placeholder="Décrivez vos objectifs principaux..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="internal-constraints">Contraintes internes</label>
+                <textarea id="internal-constraints" placeholder="Ex: Budget limité, équipe réduite..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="target-audience">Public cible</label>
+                <input type="text" id="target-audience" placeholder="Ex: PME françaises, Millennials...">
+            </div>
+
+            <div class="form-group">
+                <label for="communication-tone">Ton de communication</label>
+                <input type="text" id="communication-tone" placeholder="Ex: Professionnel, Décontracté, Premium...">
+            </div>
+
+            <div class="form-group">
+                <label for="free-description">Description libre</label>
+                <textarea id="free-description" placeholder="Toute information complémentaire utile..."></textarea>
+            </div>
+        </div>
+
+        <!-- Section: Champs personnalisés -->
+        <div class="section">
+            <h2>📝 Champs personnalisés</h2>
+            <p style="color: #666; margin-bottom: 20px;">Ajoutez des informations spécifiques à votre contexte</p>
+
+            <div id="custom-fields-container" class="custom-fields">
+                <!-- Les champs personnalisés seront ajoutés ici -->
+            </div>
+
+            <button class="btn btn-secondary" onclick="addCustomField()">
+                ➕ Ajouter un champ personnalisé
+            </button>
+        </div>
+
+        <!-- Section: Documents RAG -->
+        <div class="section">
+            <h2>📄 Documents de référence (RAG)</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                Importez des documents pour enrichir le contexte avec du contenu spécifique
+            </p>
+
+            <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+                <div style="font-size: 48px; margin-bottom: 15px;">📎</div>
+                <p style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">
+                    Glissez vos fichiers ici ou cliquez pour parcourir
+                </p>
+                <p style="color: #666;">
+                    Formats supportés: PDF, TXT, DOC, DOCX, XLS, XLSX
+                </p>
+            </div>
+
+            <input type="file" id="file-input" multiple accept=".pdf,.txt,.doc,.docx,.xls,.xlsx">
+
+            <div id="documents-list" class="documents-list">
+                <!-- Liste des documents -->
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <button class="btn btn-success" onclick="saveContext()">
+                💾 Enregistrer le contexte
+            </button>
+            <button class="btn btn-primary" onclick="previewContext()">
+                👁️ Prévisualiser
+            </button>
+            <button class="btn btn-danger" onclick="clearContext()">
+                🗑️ Réinitialiser
+            </button>
+        </div>
+
+        <!-- Prévisualisation -->
+        <div id="preview-container" style="display: none; margin-top: 30px;">
+            <h2>Prévisualisation du contexte</h2>
+            <div id="preview-content" class="preview-context"></div>
+        </div>
+    </div>
+
+    <script src="/static/context.js"></script>
+</body>
+</html>

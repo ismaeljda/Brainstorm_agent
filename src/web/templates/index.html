@@ -37,8 +37,15 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 25px 30px;
-            text-align: center;
             border-bottom: 3px solid #5568d3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content {
+            text-align: center;
+            flex: 1;
         }
 
         .header h1 {
@@ -49,6 +56,28 @@
         .header p {
             font-size: 14px;
             opacity: 0.9;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .header-btn:hover {
+            background: white;
+            color: #667eea;
         }
 
         .objective-bar {
@@ -273,8 +302,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🤖 DebateHub - Réunion Multi-Agents</h1>
-            <p>Orchestration intelligente d'experts IA</p>
+            <div class="header-content">
+                <h1>🤖 DebateHub - Réunion Multi-Agents</h1>
+                <p>Orchestration intelligente d'experts IA</p>
+            </div>
+            <div class="header-actions">
+                <a href="/context" class="header-btn">📋 Contexte</a>
+            </div>
             <button class="pause-btn" id="pauseBtn">⏸️ Pause</button>
         </div>
 

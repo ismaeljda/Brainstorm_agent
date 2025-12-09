@@ -50,8 +50,14 @@ build/
 *.sqlite
 *.sqlite3
 
-# Secrets and keys
-*.pem
-*.key
-secrets.json
-credentials.json
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Contexte et données (ajouté pour le système de contexte organisationnel)
+data/context.json
+data/uploads/*
+!data/uploads/.gitkeep
+!data/.gitkeep
