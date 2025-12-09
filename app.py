@@ -6,6 +6,7 @@ Permet de parler via le micro du navigateur et d'écouter la réponse.
 import os
 import io
 import tempfile
+import requests
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -28,6 +29,14 @@ recognizer = sr.Recognizer()
 
 # Configuration
 ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
+
+# Voix ElevenLabs pour les agents (basé sur src/agents/prompts.py)
+AGENT_VOICES = {
+    'facilitateur': '21m00Tcm4TlvDq8ikWAM',  # Rachel - Professional female
+    'strategie': 'pNInz6obpgDQGcFmaJgB',     # Adam - Articulate male
+    'tech': 'TxGEqnHWrfWFTfGW9XjX',          # Josh - Clear male
+    'creatif': 'EXAVITQu4vr4xnSDxMaL',      # Bella - Enthusiastic female
+}
 
 
 @app.route('/')
@@ -243,19 +252,27 @@ Fais des phrases courtes et claires."""
 def text_to_speech():
     """
     Convertit le texte en audio avec ElevenLabs et renvoie le fichier audio.
+    Supporte les multi-voix pour le système d'agents.
     """
     try:
         data = request.json
         text = data.get('text', '')
+        agent_id = data.get('agent', None)  # Optionnel: pour multi-agent
 
         if not text:
             return jsonify({'error': 'Aucun texte fourni'}), 400
 
-        print(f"🔊 Génération audio pour: '{text}'")
+        # Choisir la voix: agent spécifique ou voix par défaut
+        if agent_id and agent_id in AGENT_VOICES:
+            voice_id = AGENT_VOICES[agent_id]
+            print(f"🎵 Génération audio pour agent '{agent_id}': '{text[:50]}...'")
+        else:
+            voice_id = ELEVENLABS_VOICE_ID
+            print(f"🔊 Génération audio: '{text[:50]}...'")
 
         # Générer l'audio avec ElevenLabs (nouvelle API)
         audio_generator = elevenlabs_client.text_to_speech.convert(
-            voice_id=ELEVENLABS_VOICE_ID,
+            voice_id=voice_id,
             text=text,
             model_id="eleven_multilingual_v2"
         )
@@ -545,12 +562,117 @@ def process_voice():
         }), 500
 
 
+@app.route('/api/token', methods=['GET'])
+def get_realtime_token():
+    """
+    Génère un token éphémère pour l'API OpenAI Realtime.
+    Permet au frontend de se connecter au WebSocket OpenAI sans exposer la clé API.
+    """
+    try:
+        print("🔑 Génération token OpenAI Realtime API...")
+
+        response = requests.post(
+            'https://api.openai.com/v1/realtime/sessions',
+            headers={
+                'Authorization': f'Bearer {os.getenv("OPENAI_API_KEY")}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'gpt-4o-realtime-preview-2024-12-17',
+                'voice': 'alloy'
+            }
+        )
+
+        if response.status_code != 200:
+            print(f"❌ Erreur API OpenAI: {response.status_code}")
+            return jsonify({'error': 'Failed to generate token'}), 500
+
+        data = response.json()
+        print(f"✅ Token généré")
+
+        return jsonify({
+            'token': data['client_secret']['value'],
+            'expires_at': data['client_secret']['expires_at']
+        })
+
+    except Exception as e:
+        print(f"❌ Erreur génération token: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/meeting')
+def meeting_room():
+    """Interface de meeting room multi-agents avec voix."""
+    return render_template('meeting_room_agents.html')
+
+
+@app.route('/api/agents_config', methods=['GET'])
+def get_agents_config():
+    """
+    Retourne la configuration des agents depuis src/agents/prompts.py
+    pour alimenter l'orchestrateur OpenAI Realtime.
+    """
+    try:
+        # Charger les prompts depuis src/agents/prompts.py
+        import sys
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+        from agents.prompts import AGENTS_PROMPTS
+
+        # Construire le prompt d'orchestrateur avec les vraies personnalités
+        orchestrator_prompt = """Tu es un ORCHESTRATEUR de meeting intelligent. PARLE EN FRANÇAIS.
+
+Ton rôle:
+1. Analyser ce que l'utilisateur dit
+2. Décider quel expert doit répondre parmi: Facilitateur, Stratège, Tech Lead, ou Créatif
+3. Répondre EN TANT QUE cet expert avec SA personnalité exacte
+
+RÈGLE ABSOLUE:
+- Commence TOUJOURS par: [AGENT: nom]
+- Exemples: "[AGENT: facilitateur] ...", "[AGENT: strategie] ...", "[AGENT: tech] ...", "[AGENT: creatif] ..."
+- Respecte EXACTEMENT les règles de chaque agent (nombre de phrases, style, etc.)
+
+AGENTS DISPONIBLES:
+
+--- FACILITATEUR ---
+""" + AGENTS_PROMPTS['facilitateur'] + """
+
+--- STRATÈGE BUSINESS ---
+""" + AGENTS_PROMPTS['strategie'] + """
+
+--- TECH LEAD ---
+""" + AGENTS_PROMPTS['tech'] + """
+
+--- CRÉATIF ---
+""" + AGENTS_PROMPTS['creatif'] + """
+
+IMPORTANT: Choisis l'agent le PLUS pertinent selon la question, et réponds exactement comme LUI."""
+
+        return jsonify({
+            'orchestrator_prompt': orchestrator_prompt,
+            'agents': {
+                'facilitateur': {'name': 'Facilitateur', 'voice': 'facilitateur'},
+                'strategie': {'name': 'Stratège Business', 'voice': 'strategie'},
+                'tech': {'name': 'Tech Lead', 'voice': 'tech'},
+                'creatif': {'name': 'Creative Thinker', 'voice': 'creatif'}
+            }
+        })
+
+    except Exception as e:
+        print(f"❌ Erreur chargement config agents: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     print("\n╔════════════════════════════════════════════════════════════════╗")
     print("║                                                                ║")
     print("║           🎙️  INTERFACE WEB VOCALE INTERACTIVE 🎙️              ║")
     print("║                                                                ║")
     print("║  Serveur démarré sur http://localhost:5000                     ║")
+    print("║  Meeting Room: http://localhost:5000/meeting                   ║")
     print("║                                                                ║")
     print("╚════════════════════════════════════════════════════════════════╝\n")
 

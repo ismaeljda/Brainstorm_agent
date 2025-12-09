@@ -15,6 +15,7 @@ flask-cors>=4.0.0
 
 # Utilitaires
 python-dotenv>=1.0.0
+requests>=2.31.0
 
 # ElevenLabs integration vocale
 elevenlabs>=1.0.0
