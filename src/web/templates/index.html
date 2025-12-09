@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DebateHub - Réunion Multi-Agents</title>
+    <title>BRAINSTORM AGENT</title>
     <style>
         * {
             margin: 0;
@@ -12,464 +12,623 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
         }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 1200px;
-            height: 90vh;
+        /* LANDING PAGE */
+        #landingPage {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px 30px;
-            text-align: center;
-            border-bottom: 3px solid #5568d3;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .objective-bar {
-            background: #f8f9fa;
-            padding: 15px 30px;
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
+            justify-content: center;
             align-items: center;
+            padding: 40px 20px;
+        }
+
+        .landing-title {
+            font-size: 72px;
+            font-weight: 900;
+            letter-spacing: -3px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            border: 8px solid #fff;
+            padding: 20px 40px;
+            background: #000;
+        }
+
+        .landing-subtitle {
+            font-size: 18px;
+            margin-bottom: 60px;
+            letter-spacing: 2px;
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            margin-bottom: 50px;
+        }
+
+        .agent-card {
+            border: 4px solid #fff;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #000;
+            position: relative;
+        }
+
+        .agent-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(255,255,255,0.3);
+        }
+
+        .agent-card.selected {
+            background: #fff;
+            color: #000;
+        }
+
+        .agent-card.selected .agent-orb {
+            animation: pulse 1.5s infinite;
+        }
+
+        .agent-orb {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .orb-strategie {
+            background: radial-gradient(circle at 30% 30%, #1e3a8a, #000428);
+            box-shadow: 0 0 30px #1e3a8a;
+        }
+
+        .orb-tech {
+            background: radial-gradient(circle at 30% 30%, #00ff00, #00aa00);
+            box-shadow: 0 0 30px #00ff00;
+        }
+
+        .orb-creatif {
+            background: radial-gradient(circle at 30% 30%, #a855f7, #581c87);
+            box-shadow: 0 0 30px #a855f7;
+        }
+
+        .orb-facilitateur {
+            background: radial-gradient(circle at 30% 30%, #ffffff, #888888);
+            box-shadow: 0 0 30px #ffffff;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .agent-name {
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .agent-desc {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .launch-btn {
+            display: none;
+            font-size: 32px;
+            font-weight: 900;
+            padding: 20px 60px;
+            border: 6px solid #fff;
+            background: #fff;
+            color: #000;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .launch-btn:hover {
+            background: #000;
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        .launch-btn.visible {
+            display: block;
+        }
+
+        /* CHAT PAGE */
+        #chatPage {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        #chatPage.active {
+            display: flex;
+        }
+
+        .chat-header {
+            border-bottom: 4px solid #fff;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            font-size: 48px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .active-agents {
+            display: flex;
             gap: 15px;
         }
 
-        .objective-bar strong {
-            color: #667eea;
-            font-weight: 600;
+        .active-agent-orb {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid #fff;
         }
 
-        .objective-bar span {
-            color: #333;
-            flex: 1;
+        .active-agent-orb.talking {
+            animation: talking 0.5s infinite;
         }
 
-        .chat-container {
+        @keyframes talking {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 0 20px currentColor;
+            }
+            50% { 
+                transform: scale(1.2);
+                box-shadow: 0 0 40px currentColor;
+            }
+        }
+
+        .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 30px;
-            background: #f5f7fa;
-            scroll-behavior: smooth;
+            padding: 40px;
+            background: #000;
         }
 
         .message {
-            margin-bottom: 25px;
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message-header {
+            margin-bottom: 30px;
             display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
+            gap: 20px;
+            align-items: flex-start;
         }
 
-        .agent-badge {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .message-orb {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            border: 2px solid #fff;
         }
 
-        .badge-facilitateur {
-            background: #e0f2fe;
-            color: #0369a1;
-        }
-
-        .badge-strategie {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .badge-tech {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .badge-creatif {
-            background: #fce7f3;
-            color: #9f1239;
-        }
-
-        .badge-human {
-            background: #fef3c7;
-            color: #92400e;
+        .message-orb.talking {
+            animation: talking 0.5s infinite;
         }
 
         .message-content {
-            background: white;
-            padding: 18px 22px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            border-left: 4px solid #e0e0e0;
+            flex: 1;
+            border: 3px solid #fff;
+            padding: 20px;
+            background: #000;
+            font-size: 16px;
             line-height: 1.6;
-            color: #333;
         }
 
-        .message-facilitateur .message-content {
-            border-left-color: #0369a1;
+        .message-strategie .message-orb {
+            background: #1e3a8a;
+            box-shadow: 0 0 15px #1e3a8a;
         }
 
-        .message-strategie .message-content {
-            border-left-color: #1e40af;
+        .message-tech .message-orb {
+            background: #00ff00;
+            box-shadow: 0 0 15px #00ff00;
         }
 
-        .message-tech .message-content {
-            border-left-color: #166534;
+        .message-creatif .message-orb {
+            background: #a855f7;
+            box-shadow: 0 0 15px #a855f7;
         }
 
-        .message-creatif .message-content {
-            border-left-color: #9f1239;
+        .message-facilitateur .message-orb {
+            background: #ffffff;
+            box-shadow: 0 0 15px #ffffff;
+        }
+
+        .message-human .message-orb {
+            background: #fff;
+            box-shadow: 0 0 15px #fff;
         }
 
         .message-human .message-content {
-            border-left-color: #92400e;
-            background: #fffbeb;
+            background: #222;
         }
 
-        .input-container {
-            padding: 25px 30px;
-            background: white;
-            border-top: 2px solid #e0e0e0;
+        .chat-input-container {
+            border-top: 4px solid #fff;
+            padding: 30px;
             display: flex;
-            gap: 15px;
-            align-items: center;
+            gap: 20px;
         }
 
-        #userInput {
+        #chatInput {
             flex: 1;
-            padding: 14px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 25px;
-            font-size: 15px;
+            background: #000;
+            border: 3px solid #fff;
+            color: #fff;
+            padding: 20px;
+            font-size: 18px;
+            font-family: 'Courier New', monospace;
             outline: none;
-            transition: all 0.3s;
         }
 
-        #userInput:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        #chatInput::placeholder {
+            color: #666;
         }
 
-        #sendBtn {
-            padding: 14px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-weight: 600;
+        .send-btn {
+            background: #fff;
+            color: #000;
+            border: 3px solid #fff;
+            padding: 20px 40px;
+            font-size: 18px;
+            font-weight: 900;
             cursor: pointer;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
             transition: all 0.3s;
-            font-size: 15px;
         }
 
-        #sendBtn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        .send-btn:hover {
+            background: #000;
+            color: #fff;
         }
 
-        #sendBtn:disabled {
+        .send-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
-        .typing-indicator {
-            display: none;
-            padding: 10px 0;
-            color: #667eea;
-            font-style: italic;
-            font-size: 14px;
-        }
-
-        .typing-indicator.active {
-            display: block;
-        }
-
-        .status-bar {
-            padding: 10px 30px;
-            background: #f8f9fa;
-            border-top: 1px solid #e0e0e0;
-            font-size: 13px;
-            color: #666;
-            text-align: center;
-        }
-
-        .pause-btn {
-            position: absolute;
-            top: 15px;
-            right: 30px;
-            padding: 8px 20px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid white;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .pause-btn:hover {
-            background: white;
-            color: #667eea;
-        }
-
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 10px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: #000;
+            border-left: 2px solid #fff;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 10px;
+            background: #fff;
+            border: 2px solid #000;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: #5568d3;
+        .objective-input {
+            width: 100%;
+            max-width: 600px;
+            background: #000;
+            border: 4px solid #fff;
+            color: #fff;
+            padding: 20px;
+            font-size: 18px;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 60px;
+            text-align: center;
+            outline: none;
+        }
+
+        .objective-input::placeholder {
+            color: #666;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: #000;
+            color: #fff;
+            border: 3px solid #fff;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 900;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+        }
+
+        .back-btn:hover {
+            background: #fff;
+            color: #000;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🤖 DebateHub - Réunion Multi-Agents</h1>
-            <p>Orchestration intelligente d'experts IA</p>
-            <button class="pause-btn" id="pauseBtn">⏸️ Pause</button>
+    <!-- LANDING PAGE -->
+    <div id="landingPage">
+        <h1 class="landing-title">BRAINSTORM AGENT</h1>
+        <p class="landing-subtitle">SELECT YOUR AI EXPERTS</p>
+        
+        <input 
+            type="text" 
+            id="objectiveInput" 
+            class="objective-input"
+            placeholder="ENTER YOUR MEETING OBJECTIVE..."
+        />
+        
+        <div class="agents-grid">
+            <!-- Facilitateur -->
+            <div class="agent-card" data-agent="facilitateur">
+                <div class="agent-orb orb-facilitateur"></div>
+                <div class="agent-name">FACILITATEUR</div>
+                <div class="agent-desc">Animates discussions, synthesizes ideas, and drives consensus</div>
+            </div>
+            
+            <!-- Stratège Business -->
+            <div class="agent-card" data-agent="strategie">
+                <div class="agent-orb orb-strategie"></div>
+                <div class="agent-name">STRATÈGE</div>
+                <div class="agent-desc">Analyzes market viability, ROI, and business risks</div>
+            </div>
+            
+            <!-- Tech Lead -->
+            <div class="agent-card" data-agent="tech">
+                <div class="agent-orb orb-tech"></div>
+                <div class="agent-name">TECH LEAD</div>
+                <div class="agent-desc">Evaluates technical feasibility and architecture</div>
+            </div>
+            
+            <!-- Creative Thinker -->
+            <div class="agent-card" data-agent="creatif">
+                <div class="agent-orb orb-creatif"></div>
+                <div class="agent-name">CREATIVE</div>
+                <div class="agent-desc">Generates innovative ideas and UX solutions</div>
+            </div>
         </div>
+        
+        <button class="launch-btn" id="launchBtn">LAUNCH MEETING</button>
+    </div>
 
-        <div class="objective-bar">
-            <strong>Objectif :</strong>
-            <span id="objectiveText">Chargement...</span>
+    <!-- CHAT PAGE -->
+    <div id="chatPage">
+        <button class="back-btn" id="backBtn">← BACK</button>
+        
+        <div class="chat-header">
+            <div class="chat-title">BRAINSTORM</div>
+            <div class="active-agents" id="activeAgents"></div>
         </div>
-
-        <div class="chat-container" id="chatContainer">
-            <!-- Messages apparaîtront ici -->
-        </div>
-
-        <div class="typing-indicator" id="typingIndicator">
-            Un agent est en train de réfléchir...
-        </div>
-
-        <div class="input-container">
-            <input
-                type="text"
-                id="userInput"
-                placeholder="Tapez votre intervention et appuyez sur Entrée..."
+        
+        <div class="chat-messages" id="chatMessages"></div>
+        
+        <div class="chat-input-container">
+            <input 
+                type="text" 
+                id="chatInput" 
+                placeholder="TYPE YOUR MESSAGE..."
                 autocomplete="off"
             />
-            <button id="sendBtn">Envoyer</button>
-        </div>
-
-        <div class="status-bar" id="statusBar">
-            En attente de connexion...
+            <button class="send-btn" id="sendBtn">SEND</button>
         </div>
     </div>
 
     <script>
-        let isPaused = false;
-        let messageQueue = [];
-        let isTyping = false;
-        let processingQueue = false;
+        let selectedAgents = new Set();
+        let currentObjective = '';
+        let talkingAgent = null;
 
         const agentNames = {
             'facilitateur': 'Facilitateur',
             'strategie': 'Stratège Business',
             'tech': 'Tech Lead',
             'creatif': 'Creative Thinker',
-            'human': 'Vous'
+            'human': 'You'
         };
 
-        function queueMessage(agentId, message, animate = true) {
-            // Ajouter à la queue
-            messageQueue.push({ agentId, message, animate });
+        const agentColors = {
+            'facilitateur': '#ffffff',
+            'strategie': '#1e3a8a',
+            'tech': '#00ff00',
+            'creatif': '#a855f7'
+        };
 
-            // Traiter la queue si pas déjà en cours
-            if (!processingQueue) {
-                processQueue();
-            }
-        }
+        // Agent card selection
+        document.querySelectorAll('.agent-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const agent = card.dataset.agent;
+                
+                if (selectedAgents.has(agent)) {
+                    selectedAgents.delete(agent);
+                    card.classList.remove('selected');
+                } else {
+                    selectedAgents.add(agent);
+                    card.classList.add('selected');
+                }
+                
+                // Show launch button if at least one agent selected
+                const launchBtn = document.getElementById('launchBtn');
+                if (selectedAgents.size > 0) {
+                    launchBtn.classList.add('visible');
+                } else {
+                    launchBtn.classList.remove('visible');
+                }
+            });
+        });
 
-        function processQueue() {
-            if (messageQueue.length === 0) {
-                processingQueue = false;
+        // Launch meeting
+        document.getElementById('launchBtn').addEventListener('click', () => {
+            currentObjective = document.getElementById('objectiveInput').value.trim();
+            
+            if (!currentObjective) {
+                alert('Please enter a meeting objective!');
                 return;
             }
-
-            processingQueue = true;
-            const { agentId, message, animate } = messageQueue.shift();
-
-            addMessageNow(agentId, message, animate, () => {
-                // Une fois terminé, traiter le message suivant
-                processQueue();
+            
+            if (selectedAgents.size === 0) {
+                alert('Please select at least one agent!');
+                return;
+            }
+            
+            // Switch to chat page
+            document.getElementById('landingPage').style.display = 'none';
+            document.getElementById('chatPage').classList.add('active');
+            
+            // Create active agent orbs
+            const activeAgentsContainer = document.getElementById('activeAgents');
+            activeAgentsContainer.innerHTML = '';
+            
+            selectedAgents.forEach(agent => {
+                const orb = document.createElement('div');
+                orb.className = `active-agent-orb orb-${agent}`;
+                orb.dataset.agent = agent;
+                activeAgentsContainer.appendChild(orb);
             });
-        }
+            
+            // Start meeting
+            startMeeting();
+        });
 
-        function addMessageNow(agentId, message, animate, callback) {
-            const chatContainer = document.getElementById('chatContainer');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message message-${agentId}`;
-
-            const headerDiv = document.createElement('div');
-            headerDiv.className = 'message-header';
-
-            const badge = document.createElement('span');
-            badge.className = `agent-badge badge-${agentId}`;
-            badge.textContent = agentNames[agentId] || agentId;
-
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-
-            headerDiv.appendChild(badge);
-            messageDiv.appendChild(headerDiv);
-            messageDiv.appendChild(contentDiv);
-            chatContainer.appendChild(messageDiv);
-
-            if (animate && agentId !== 'human') {
-                typeWriter(contentDiv, message, 15, callback); // 15ms par caractère (2x plus rapide)
-            } else {
-                contentDiv.textContent = message;
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-                if (callback) callback();
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to leave the meeting?')) {
+                location.reload();
             }
-        }
+        });
 
-        function typeWriter(element, text, speed, callback) {
-            isTyping = true;
-            document.getElementById('typingIndicator').classList.add('active');
-            // Ne plus désactiver le bouton pendant le typing pour permettre les interruptions
-
-            let i = 0;
-            const chatContainer = document.getElementById('chatContainer');
-
-            function type() {
-                if (i < text.length && !isPaused) {
-                    element.textContent += text.charAt(i);
-                    i++;
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                    setTimeout(type, speed);
-                } else if (isPaused) {
-                    // Attendre que la pause soit levée
-                    setTimeout(type, 100);
-                } else {
-                    isTyping = false;
-                    document.getElementById('typingIndicator').classList.remove('active');
-                    if (callback) callback();
-                }
-            }
-
-            type();
-        }
-
+        // Send message
         function sendMessage() {
-            const input = document.getElementById('userInput');
+            const input = document.getElementById('chatInput');
             const message = input.value.trim();
-
-            if (!message) {
-                return; // Ne rien faire si le message est vide
-            }
-
-            // Afficher immédiatement le message de l'utilisateur
-            queueMessage('human', message, false);
+            
+            if (!message) return;
+            
+            addMessage('human', message, false);
             input.value = '';
-
-            // Désactiver temporairement l'input pour éviter les doubles envois
-            input.disabled = true;
-            document.getElementById('sendBtn').disabled = true;
-
-            // Envoyer au backend
+            
+            // Send to backend
             fetch('/send_message', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: message })
             })
             .then(response => response.json())
             .then(data => {
-                if (data.status === 'ok') {
-                    updateStatus(`Message envoyé - ${data.agents_responded} agent(s) répondent`);
-                }
-                // Réactiver l'input après réponse
-                input.disabled = false;
-                document.getElementById('sendBtn').disabled = false;
-                input.focus();
+                console.log('Message sent:', data);
             })
-            .catch(error => {
-                console.error('Error:', error);
-                updateStatus('Erreur de connexion');
-                input.disabled = false;
-                document.getElementById('sendBtn').disabled = false;
-            });
+            .catch(error => console.error('Error:', error));
         }
 
-        function updateStatus(text) {
-            document.getElementById('statusBar').textContent = text;
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Add message to chat
+        function addMessage(agentId, message, animate = true) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${agentId}`;
+            
+            const orb = document.createElement('div');
+            orb.className = `message-orb orb-${agentId}`;
+            orb.dataset.agent = agentId;
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            messageDiv.appendChild(orb);
+            messageDiv.appendChild(content);
+            messagesContainer.appendChild(messageDiv);
+            
+            if (animate && agentId !== 'human') {
+                // Animate header orb
+                const headerOrb = document.querySelector(`.active-agent-orb.orb-${agentId}`);
+                if (headerOrb) {
+                    headerOrb.classList.add('talking');
+                }
+                orb.classList.add('talking');
+                
+                typeWriter(content, message, 20, () => {
+                    orb.classList.remove('talking');
+                    if (headerOrb) {
+                        headerOrb.classList.remove('talking');
+                    }
+                });
+            } else {
+                content.textContent = message;
+            }
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
+        function typeWriter(element, text, speed, callback) {
+            let i = 0;
+            const messagesContainer = document.getElementById('chatMessages');
+            
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    setTimeout(type, speed);
+                } else {
+                    if (callback) callback();
+                }
+            }
+            
+            type();
+        }
+
+        // Start meeting
+        function startMeeting() {
+            fetch('/start_meeting', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    objective: currentObjective,
+                    agents: Array.from(selectedAgents)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Meeting started:', data);
+                pollMessages();
+            })
+            .catch(error => console.error('Error starting meeting:', error));
+        }
+
+        // Poll for new messages
         function pollMessages() {
             fetch('/get_messages')
                 .then(response => response.json())
                 .then(data => {
                     if (data.messages && data.messages.length > 0) {
                         data.messages.forEach(msg => {
-                            queueMessage(msg.agent, msg.message);
+                            // Only show messages from selected agents
+                            if (selectedAgents.has(msg.agent) || msg.agent === 'human') {
+                                addMessage(msg.agent, msg.message);
+                            }
                         });
                     }
-
-                    if (data.objective) {
-                        document.getElementById('objectiveText').textContent = data.objective;
-                    }
-
-                    if (data.status) {
-                        updateStatus(data.status);
-                    }
-
-                    // Continue polling
+                    
                     if (data.meeting_active) {
                         setTimeout(pollMessages, 1000);
-                    } else {
-                        updateStatus('Réunion terminée');
                     }
                 })
                 .catch(error => {
@@ -477,50 +636,6 @@
                     setTimeout(pollMessages, 2000);
                 });
         }
-
-        // Event listeners
-        document.getElementById('sendBtn').addEventListener('click', sendMessage);
-        document.getElementById('userInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        document.getElementById('pauseBtn').addEventListener('click', () => {
-            isPaused = !isPaused;
-            const btn = document.getElementById('pauseBtn');
-            if (isPaused) {
-                btn.textContent = '▶️ Reprendre';
-                btn.style.background = 'rgba(255, 255, 255, 0.9)';
-                btn.style.color = '#667eea';
-                updateStatus('Pause - Animation suspendue');
-            } else {
-                btn.textContent = '⏸️ Pause';
-                btn.style.background = 'rgba(255, 255, 255, 0.2)';
-                btn.style.color = 'white';
-                updateStatus('Réunion en cours');
-            }
-        });
-
-        // Initialisation
-        fetch('/start_meeting', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                objective: "Conception d'un SaaS multi-agents appelé 'DebateHub'"
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            updateStatus('Réunion démarrée');
-            pollMessages();
-        })
-        .catch(error => {
-            console.error('Error starting meeting:', error);
-            updateStatus('Erreur de démarrage');
-        });
     </script>
 </body>
 </html>
