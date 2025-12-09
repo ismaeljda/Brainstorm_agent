@@ -1,0 +1,24 @@
+# Alternative: Dockerfile sans Nginx, avec serveur Node simple
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copier package files
+COPY package.json package-lock.json* ./
+
+# Installer les dépendances
+RUN npm install
+
+# Copier le code source
+COPY . .
+
+# Build
+RUN npm run build
+
+# Installer un serveur statique simple
+RUN npm install -g serve
+
+EXPOSE 3000
+
+# Servir le build avec 'serve'
+CMD ["serve", "-s", "dist", "-l", "3000"]

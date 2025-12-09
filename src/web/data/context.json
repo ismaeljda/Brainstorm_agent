@@ -1,0 +1,20 @@
+{
+  "company_name": "debatehub",
+  "industry": "saas",
+  "strategic_goals": "",
+  "internal_constraints": "10000 € budget marketing",
+  "target_audience": "",
+  "communication_tone": "",
+  "free_description": "",
+  "custom_fields": {},
+  "created_at": "2025-12-08T19:41:34.436425",
+  "updated_at": "2025-12-08T19:41:34.436425",
+  "documents": [
+    {
+      "filename": "BainStormIA_pitch.pdf",
+      "file_path": "data/uploads\\3afaef9b-3b4e-4120-812f-e0b9c0ee8e0e_BainStormIA_pitch.pdf",
+      "doc_type": "application/pdf",
+      "uploaded_at": "2025-12-08T18:41:30.605Z"
+    }
+  ]
+}

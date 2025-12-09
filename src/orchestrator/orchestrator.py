@@ -9,6 +9,7 @@ from crewai import Agent, Task, Crew
 from langchain_openai import ChatOpenAI
 from agents.config import AGENTS_CONFIG, RESET_COLOR, HUMAN_COLOR
 from agents.prompts import AGENTS_PROMPTS
+from context import ContextStorage, get_rag_service
 
 
 class Orchestrator:
@@ -31,6 +32,13 @@ class Orchestrator:
 
         # Historique de la conversation
         self.conversation_history: List[Dict[str, str]] = []
+
+        # Charger le contexte organisationnel
+        context_storage = ContextStorage()
+        self.organizational_context = context_storage.load()
+
+        # Service RAG
+        self.rag_service = get_rag_service()
 
         # Créer les agents CrewAI
         self.agents = self._create_agents()
@@ -86,18 +94,68 @@ class Orchestrator:
             "message": message
         })
 
-    def _build_context(self) -> str:
+    def _build_context(self, include_rag: bool = True) -> str:
         """
         Construit le contexte de conversation pour l'agent.
+
+        Args:
+            include_rag: Si True, inclut le contexte RAG (TOUJOURS ACTIVÉ PAR DÉFAUT)
 
         Returns:
             Contexte formaté de la conversation
         """
-        if not self.conversation_history:
-            return f"OBJECTIF DE LA RÉUNION : {self.objective}\n\nLa réunion commence."
+        # Contexte organisationnel
+        context_parts = []
 
-        context = f"OBJECTIF DE LA RÉUNION : {self.objective}\n\n"
-        context += "HISTORIQUE DE LA CONVERSATION :\n"
+        if self.organizational_context:
+            context_parts.append(self.organizational_context.format_for_agents())
+            context_parts.append("\n" + "=" * 80 + "\n")
+
+        # Objectif de la réunion
+        if not self.conversation_history:
+            context_parts.append(f"OBJECTIF DE LA RÉUNION : {self.objective}\n\nLa réunion commence.")
+            return "\n".join(context_parts)
+
+        context_parts.append(f"OBJECTIF DE LA RÉUNION : {self.objective}\n")
+
+        # Contexte RAG pertinent (TOUJOURS ACTIVÉ POUR TESTS)
+        if include_rag and self.conversation_history:
+            try:
+                last_message = self.conversation_history[-1]["message"]
+                print(f"🔍 [RAG SYSTÉMATIQUE] Recherche pour : '{last_message[:50]}...'")
+
+                # Rechercher d'abord les résultats bruts
+                results = self.rag_service.search(last_message, top_k=5)
+
+                if results:
+                    print(f"\n📄 RAG a trouvé {len(results)} documents pertinents:")
+                    for i, result in enumerate(results, 1):
+                        score = result['score']
+                        text_preview = result['text'][:100].replace('\n', ' ')
+                        print(f"  {i}. Score: {score:.3f} | Extrait: {text_preview}...")
+                    print()
+
+                    # Formater le contexte
+                    rag_context = self.rag_service.get_relevant_context(last_message, max_chars=2000)
+                    if rag_context:
+                        print(f"✅ RAG : {len(rag_context)} caractères formatés pour les agents")
+                        print(f"\n📋 CONTEXTE RAG ENVOYÉ AUX AGENTS:")
+                        print("=" * 80)
+                        print(rag_context[:500])  # Afficher les 500 premiers caractères
+                        if len(rag_context) > 500:
+                            print(f"\n... ({len(rag_context) - 500} caractères supplémentaires)")
+                        print("=" * 80)
+                        print()
+
+                        context_parts.append(rag_context)
+                        context_parts.append("\n" + "=" * 80 + "\n")
+                else:
+                    print("⚠️ RAG : Aucun document pertinent trouvé (base de données vide?)")
+            except Exception as e:
+                print(f"❌ Erreur RAG : {e}")
+
+        # Historique de la conversation
+        context_parts.append("HISTORIQUE DE LA CONVERSATION :\n")
 
         for entry in self.conversation_history[-10:]:  # Garder les 10 dernières interventions
             agent_id = entry["agent"]
@@ -105,9 +163,9 @@ class Orchestrator:
                 name = "Humain"
             else:
                 name = AGENTS_CONFIG[agent_id]["name"]
-            context += f"\n[{name}] : {entry['message']}\n"
+            context_parts.append(f"[{name}] : {entry['message']}\n")
 
-        return context
+        return "\n".join(context_parts)
 
     def _select_next_speaker(self, context: str) -> Optional[str]:
         """

@@ -78,3 +78,9 @@ Desktop.ini
 *.temp
 tmp/
 temp/
+
+# Contexte et données (ajouté pour le système de contexte organisationnel)
+data/context.json
+data/uploads/*
+!data/uploads/.gitkeep
+!data/.gitkeep
