@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Anam AI SDK for video avatars (served locally) -->
+    <script src="/static/anam-sdk.js"></script>
     <style>
         * {
             margin: 0;
@@ -275,6 +277,23 @@
             margin-bottom: 16px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .avatar-video:not([style*="display: none"]) + i {
+            display: none;
         }
 
         .participant-card.speaking .participant-avatar {
@@ -746,6 +765,7 @@
                     </div>
                     <div class="participant-content">
                         <div class="participant-avatar">
+                            <video id="avatar-facilitateur" class="avatar-video" autoplay playsinline muted style="display: none;"></video>
                             <i data-lucide="target" style="width: 48px; height: 48px;"></i>
                         </div>
                         <div class="participant-name">Facilitator</div>
@@ -764,6 +784,7 @@
                     </div>
                     <div class="participant-content">
                         <div class="participant-avatar">
+                            <video id="avatar-strategie" class="avatar-video" autoplay playsinline muted style="display: none;"></video>
                             <i data-lucide="trending-up" style="width: 48px; height: 48px;"></i>
                         </div>
                         <div class="participant-name">Business Strategist</div>
@@ -782,6 +803,7 @@
                     </div>
                     <div class="participant-content">
                         <div class="participant-avatar">
+                            <video id="avatar-tech" class="avatar-video" autoplay playsinline muted style="display: none;"></video>
                             <i data-lucide="code" style="width: 48px; height: 48px;"></i>
                         </div>
                         <div class="participant-name">Tech Lead</div>
@@ -800,6 +822,7 @@
                     </div>
                     <div class="participant-content">
                         <div class="participant-avatar">
+                            <video id="avatar-creatif" class="avatar-video" autoplay playsinline muted style="display: none;"></video>
                             <i data-lucide="lightbulb" style="width: 48px; height: 48px;"></i>
                         </div>
                         <div class="participant-name">Creative Thinker</div>
@@ -970,6 +993,10 @@
         const transcriptMessages = document.getElementById('transcriptMessages');
         const messageCountEl = document.getElementById('messageCount');
 
+        // Anam avatar clients
+        let anamClients = {};
+        const ANAM_ENABLED = true; // Anam avatars enabled with API key
+
         function highlightParticipant(agentId) {
             document.querySelectorAll('.participant-card').forEach(card => {
                 card.classList.remove('speaking');
@@ -1089,10 +1116,38 @@
                     }));
 
                     await startAudioStreaming();
+
+                    // Send initial greeting to start the conversation
+                    setTimeout(() => {
+                        console.log('🎬 Starting initial conversation...');
+                        const briefData = JSON.parse(sessionStorage.getItem('meetingBrief') || '{}');
+                        const initialPrompt = briefData.name
+                            ? `Let's start the brainstorming session for "${briefData.name}". Context: ${briefData.context}. Objective: ${briefData.objective}. Facilitator, please begin by asking the first question to one of the experts.`
+                            : `Let's start the brainstorming session. Facilitator, please begin by asking the first question.`;
+
+                        ws.send(JSON.stringify({
+                            type: 'conversation.item.create',
+                            item: {
+                                type: 'message',
+                                role: 'user',
+                                content: [{
+                                    type: 'input_text',
+                                    text: initialPrompt
+                                }]
+                            }
+                        }));
+
+                        ws.send(JSON.stringify({ type: 'response.create' }));
+                    }, 1000);
                 };
 
                 ws.onmessage = (event) => {
                     const data = JSON.parse(event.data);
+
+                    // Log all events for debugging
+                    if (!data.type.includes('input_audio_buffer')) {
+                        console.log('📨 WebSocket event:', data.type, data);
+                    }
 
                     switch (data.type) {
                         case 'conversation.item.input_audio_transcription.completed':
@@ -1198,8 +1253,103 @@
             processor.connect(audioContext.destination);
         }
 
+        async function initializeAnamAvatars() {
+            if (!ANAM_ENABLED) {
+                console.log('📹 Anam avatars disabled');
+                return;
+            }
+
+            // Check if Anam SDK is loaded
+            if (typeof window.anam === 'undefined') {
+                console.warn('⚠️ Anam SDK not loaded. Please check the script tag.');
+                console.log('Available anam objects:', window.anam);
+                return;
+            }
+
+            console.log('✅ Anam SDK loaded:', window.anam);
+
+            try {
+                console.log('📹 Initializing Anam avatars...');
+
+                // Create session for each agent
+                for (const [agentId, agent] of Object.entries(AGENTS)) {
+                    try {
+                        // Get session token from backend
+                        const response = await fetch('http://localhost:5000/api/anam/session', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ persona_id: agent.voice })
+                        });
+
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.warn(`⚠️ Failed to create Anam session for ${agentId}:`, errorText);
+                            continue;
+                        }
+
+                        const { session_token } = await response.json();
+                        console.log(`✅ Got session token for ${agentId}`);
+
+                        // Initialize Anam client using createClient from the SDK
+                        const { createClient } = window.anam;
+                        if (!createClient) {
+                            console.error('❌ createClient function not found in Anam SDK');
+                            console.log('Available methods:', Object.keys(window.anam));
+                            continue;
+                        }
+
+                        const client = createClient(session_token);
+
+                        // Stream to video element
+                        const videoElementId = `avatar-${agentId}`;
+                        await client.streamToVideoElement(videoElementId);
+
+                        anamClients[agentId] = client;
+
+                        // Show video, hide icon
+                        const videoElement = document.getElementById(videoElementId);
+                        videoElement.style.display = 'block';
+                        console.log(`✅ Anam avatar initialized for ${agentId}`);
+
+                    } catch (error) {
+                        console.error(`❌ Error initializing avatar for ${agentId}:`, error);
+                    }
+                }
+
+            } catch (error) {
+                console.error('❌ Error initializing Anam avatars:', error);
+            }
+        }
+
         async function generateAndPlaySpeech(agentId, text) {
             try {
+                // If Anam is available, send text to avatar
+                if (ANAM_ENABLED && anamClients[agentId]) {
+                    try {
+                        // Send text to Anam avatar to speak
+                        const sendTextMethod = anamClients[agentId].streamText || anamClients[agentId].sendText;
+                        if (sendTextMethod) {
+                            await sendTextMethod.call(anamClients[agentId], text);
+                            console.log(`📹 Sent text to Anam avatar for ${agentId}: "${text.substring(0, 50)}..."`);
+
+                            // Wait for avatar to finish speaking (estimate based on text length)
+                            const estimatedDuration = (text.length / 15) * 1000; // ~15 chars per second
+                            setTimeout(() => {
+                                highlightParticipant(null);
+                                if (isAutoConversation) {
+                                    setTimeout(() => triggerNextAgent(), 1000);
+                                }
+                            }, estimatedDuration);
+                            return;
+                        } else {
+                            console.warn('⚠️ sendText/streamText method not found on Anam client');
+                        }
+                    } catch (anamError) {
+                        console.warn('⚠️ Anam playback failed, falling back to ElevenLabs', anamError);
+                    }
+                }
+
+                // Fallback to ElevenLabs TTS
                 const response = await fetch('http://localhost:5000/api/speak', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1230,7 +1380,10 @@
         }
 
         // Start meeting on load
-        startMeeting();
+        startMeeting().then(() => {
+            // Initialize Anam avatars after meeting is started
+            initializeAnamAvatars();
+        });
     </script>
 </body>
 </html>

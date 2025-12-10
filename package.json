@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@anam-ai/js-sdk": "^4.7.0"
+  }
+}

@@ -71,6 +71,13 @@ def meeting_room():
     return render_template('meeting.html')
 
 
+@app.route('/static/anam-sdk.js')
+def anam_sdk():
+    """Serve Anam SDK locally."""
+    sdk_path = os.path.join(os.path.dirname(__file__), 'node_modules/@anam-ai/js-sdk/dist/umd/anam.js')
+    return send_file(sdk_path, mimetype='application/javascript')
+
+
 @app.route('/api/transcribe', methods=['POST'])
 def transcribe_audio():
     """
@@ -238,49 +245,49 @@ def get_agents_config():
         from agents.prompts import AGENTS_PROMPTS
 
         # Construire le prompt d'orchestrateur avec les vraies personnalités
-        orchestrator_prompt = """Tu es un ORCHESTRATEUR de meeting intelligent qui anime une DISCUSSION ENTRE AGENTS. PARLE EN FRANÇAIS.
+        orchestrator_prompt = """You are an intelligent MEETING ORCHESTRATOR who facilitates a DISCUSSION BETWEEN AGENTS. SPEAK IN ENGLISH.
 
-🎯 FLUX DE CONVERSATION:
-1. L'utilisateur lance un sujet → Le Facilitateur pose UNE question à un agent spécifique
-2. L'agent interrogé répond (2 phrases max)
-3. Le Facilitateur enchaîne avec une question à UN AUTRE agent
-4. Les agents se répondent et construisent ensemble la solution
+🎯 CONVERSATION FLOW:
+1. User launches a topic → Facilitator asks ONE question to a specific agent
+2. The questioned agent responds (2 sentences max)
+3. Facilitator follows up with a question to ANOTHER agent
+4. Agents respond to each other and build the solution together
 
-📋 RÈGLES D'ORCHESTRATION:
-- Alterne entre les agents pour créer une vraie conversation
-- Le Facilitateur lance TOUJOURS les questions, jamais les réponses longues
-- Chaque agent doit intervenir selon son expertise
-- Crée un flow naturel: question → réponse → nouvelle question → réponse...
+📋 ORCHESTRATION RULES:
+- Alternate between agents to create a real conversation
+- Facilitator ALWAYS launches questions, never long answers
+- Each agent must intervene according to their expertise
+- Create a natural flow: question → answer → new question → answer...
 
-RÈGLE ABSOLUE:
-- Commence TOUJOURS par: [AGENT: nom]
-- Exemples: "[AGENT: facilitateur] ...", "[AGENT: strategie] ...", "[AGENT: tech] ...", "[AGENT: creatif] ..."
-- Respecte EXACTEMENT les règles de chaque agent (nombre de phrases, style, etc.)
+ABSOLUTE RULE:
+- ALWAYS start with: [AGENT: name]
+- Examples: "[AGENT: facilitateur] ...", "[AGENT: strategie] ...", "[AGENT: tech] ...", "[AGENT: creatif] ..."
+- EXACTLY respect each agent's rules (number of sentences, style, etc.)
 
-AGENTS DISPONIBLES:
+AVAILABLE AGENTS:
 
---- FACILITATEUR ---
+--- FACILITATOR ---
 """ + AGENTS_PROMPTS['facilitateur'] + """
 
---- STRATÈGE BUSINESS ---
+--- BUSINESS STRATEGIST ---
 """ + AGENTS_PROMPTS['strategie'] + """
 
 --- TECH LEAD ---
 """ + AGENTS_PROMPTS['tech'] + """
 
---- CRÉATIF ---
+--- CREATIVE THINKER ---
 """ + AGENTS_PROMPTS['creatif'] + """
 
-💡 EXEMPLE DE FLOW:
-User: "Je veux créer une app de gestion de projet"
-→ [AGENT: facilitateur] Stratège : c'est quoi le marché cible ?
-→ [AGENT: strategie] Cible : PME 10-50 employés. Modèle freemium + abonnement équipes.
-→ [AGENT: facilitateur] Tech Lead : faisable en combien de temps ?
-→ [AGENT: tech] Faisable. MVP : 2-3 mois avec stack simple.
-→ [AGENT: facilitateur] Créatif : comment se différencier ?
-→ [AGENT: creatif] Interface type Slack avec threads. Simple tech, fort impact UX.
+💡 EXAMPLE FLOW:
+User: "I want to create a project management app"
+→ [AGENT: facilitateur] Strategist: what's the target market?
+→ [AGENT: strategie] Target: SMBs 10-50 employees. Freemium model + team subscriptions.
+→ [AGENT: facilitateur] Tech Lead: how long to build?
+→ [AGENT: tech] Doable. MVP: 2-3 months with simple stack.
+→ [AGENT: facilitateur] Creative: how to differentiate?
+→ [AGENT: creatif] Slack-like interface with threads. Simple tech, strong UX impact.
 
-IMPORTANT: Fais parler les agents entre eux pour construire la solution ensemble!"""
+IMPORTANT: Make agents talk to each other to build the solution together!"""
 
         return jsonify({
             'orchestrator_prompt': orchestrator_prompt,
@@ -433,6 +440,94 @@ def reset_orchestrator():
 
     except Exception as e:
         print(f"❌ Erreur reset: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/anam/session', methods=['POST'])
+def create_anam_session():
+    """
+    Crée une session Anam sécurisée pour le client.
+    Échange la clé API contre un token de session temporaire.
+    """
+    try:
+        anam_api_key = os.getenv("ANAM_API_KEY")
+        if not anam_api_key or anam_api_key == "your_anam_api_key_here":
+            return jsonify({
+                'error': 'ANAM_API_KEY not configured. Please add your Anam API key to .env file'
+            }), 500
+
+        data = request.get_json(silent=True) or {}
+        persona_id = data.get('persona_id', None)
+
+        # Define different avatars and voices for each agent
+        # You can customize these IDs from your Anam Lab account
+        agent_configs = {
+            'facilitateur': {
+                'name': 'Facilitator',
+                'avatarId': '30fa96d0-26c4-4e55-94a0-517025942e18',  # Default Cara avatar
+                'voiceId': '6bfbe25a-979d-40f3-a92b-5394170af54b',
+                'llmId': 'llm-gpt-4o-mini-2024-07-18',
+                'systemPrompt': "[STYLE] Reply in natural speech without formatting. Add pauses using '...' and very occasionally a disfluency. [PERSONALITY] You are a professional facilitator who guides brainstorming sessions."
+            },
+            'strategie': {
+                'name': 'Business Strategist',
+                'avatarId': '30fa96d0-26c4-4e55-94a0-517025942e18',
+                'voiceId': '6bfbe25a-979d-40f3-a92b-5394170af54b',
+                'llmId': 'llm-gpt-4o-mini-2024-07-18',
+                'systemPrompt': "[STYLE] Reply in natural speech without formatting. Add pauses using '...' and very occasionally a disfluency. [PERSONALITY] You are a business strategist expert."
+            },
+            'tech': {
+                'name': 'Tech Lead',
+                'avatarId': '30fa96d0-26c4-4e55-94a0-517025942e18',
+                'voiceId': '6bfbe25a-979d-40f3-a92b-5394170af54b',
+                'llmId': 'llm-gpt-4o-mini-2024-07-18',
+                'systemPrompt': "[STYLE] Reply in natural speech without formatting. Add pauses using '...' and very occasionally a disfluency. [PERSONALITY] You are a technical architect expert."
+            },
+            'creatif': {
+                'name': 'Creative Thinker',
+                'avatarId': '30fa96d0-26c4-4e55-94a0-517025942e18',
+                'voiceId': '6bfbe25a-979d-40f3-a92b-5394170af54b',
+                'llmId': 'llm-gpt-4o-mini-2024-07-18',
+                'systemPrompt': "[STYLE] Reply in natural speech without formatting. Add pauses using '...' and very occasionally a disfluency. [PERSONALITY] You are a creative director expert."
+            }
+        }
+
+        persona_config = agent_configs.get(persona_id, agent_configs['facilitateur'])
+
+        # Créer une session Anam via leur API avec la config complète
+        anam_response = requests.post(
+            'https://api.anam.ai/v1/auth/session-token',
+            headers={
+                'Authorization': f'Bearer {anam_api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'personaConfig': persona_config
+            }
+        )
+
+        if anam_response.status_code != 200:
+            print(f"❌ Erreur API Anam: {anam_response.status_code}")
+            print(f"Réponse: {anam_response.text}")
+            return jsonify({
+                'error': 'Failed to create Anam session',
+                'details': anam_response.text
+            }), 500
+
+        session_data = anam_response.json()
+        print(f"✅ Session Anam créée: {session_data}")
+
+        # The response should contain sessionToken
+        return jsonify({
+            'success': True,
+            'session_token': session_data.get('sessionToken') or session_data.get('session_token'),
+            'session_id': session_data.get('sessionId') or session_data.get('session_id')
+        })
+
+    except Exception as e:
+        print(f"❌ Erreur création session Anam: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
