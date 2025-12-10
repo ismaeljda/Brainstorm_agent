@@ -210,21 +210,22 @@
             box-shadow: 0 0 24px rgba(59, 130, 246, 0.4);
         }
 
-        /* Main Content */
+        /* Main Content - Full width without transcript */
         .meeting-main {
-            display: grid;
-            grid-template-columns: 1fr 380px;
+            display: flex;
             overflow: hidden;
+            width: 100%;
         }
 
-        /* Participants Grid */
+        /* Participants Grid - Full screen */
         .participants-section {
             background: transparent;
-            padding: 20px;
+            padding: 40px;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             grid-template-rows: repeat(2, 1fr);
-            gap: 20px;
+            gap: 30px;
+            flex: 1;
             overflow: hidden;
         }
 
@@ -402,8 +403,8 @@
             --agent-color-rgb: 245, 158, 11;
         }
 
-        /* Transcript Panel */
-        .transcript-panel {
+        /* Transcript Panel - REMOVED */
+        .transcript-panel-removed {
             background: var(--surface);
             backdrop-filter: blur(24px);
             border-left: 1px solid var(--border);
@@ -831,21 +832,7 @@
                 </div>
             </div>
 
-            <!-- Transcript Panel -->
-            <aside class="transcript-panel">
-                <div class="panel-header">
-                    <div class="panel-title">Transcript</div>
-                    <div class="message-count" id="messageCount">0 messages</div>
-                </div>
-                <div class="transcript-messages" id="transcriptMessages">
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i data-lucide="message-square" style="width: 100%; height: 100%;"></i>
-                        </div>
-                        <div>Transcript will appear here</div>
-                    </div>
-                </div>
-            </aside>
+            <!-- Transcript removed - using Anam avatars only -->
         </main>
 
         <!-- Controls -->
@@ -1011,44 +998,12 @@
         }
 
         function addMessage(agentId, content) {
-            // Remove empty state
-            const emptyState = transcriptMessages.querySelector('.empty-state');
-            if (emptyState) {
-                transcriptMessages.innerHTML = '';
-            }
-
-            const agent = agentId === 'user' ? {
-                name: 'You',
-                icon: 'user',
-                color: '#2563EB'
-            } : AGENTS[agentId];
-
-            const now = new Date();
-            const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-            const message = document.createElement('div');
-            message.className = `transcript-message ${agentId}`;
-            message.innerHTML = `
-                <div class="message-header">
-                    <div class="message-avatar" style="background: ${agent.color}; color: white;">
-                        <i data-lucide="${agent.icon}" style="width: 14px; height: 14px;"></i>
-                    </div>
-                    <div class="message-name" style="color: ${agent.color}">${agent.name}</div>
-                    <div class="message-time">${time}</div>
-                </div>
-                <div class="message-content">${content}</div>
-            `;
-            transcriptMessages.appendChild(message);
-            transcriptMessages.scrollTop = transcriptMessages.scrollHeight;
-
-            lucide.createIcons();
-
-            messageCount++;
-            messageCountEl.textContent = `${messageCount} message${messageCount > 1 ? 's' : ''}`;
+            // Transcript removed - messages only logged to console
+            console.log(`💬 ${AGENTS[agentId]?.name || agentId}: ${content}`);
         }
 
-        function triggerNextAgent() {
-            if (!ws || !isAutoConversation) return;
+        async function triggerNextAgent() {
+            if (!isAutoConversation) return;
 
             conversationTurns++;
             console.log(`🔄 Tour ${conversationTurns}/${maxTurns}`);
@@ -1059,199 +1014,79 @@
                 return;
             }
 
-            setTimeout(() => {
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({
-                        type: 'conversation.item.create',
-                        item: {
-                            type: 'message',
-                            role: 'user',
-                            content: [{
-                                type: 'input_text',
-                                text: 'Continue la discussion. Quel agent doit parler maintenant?'
-                            }]
-                        }
-                    }));
+            // Call orchestrator API for next turn
+            try {
+                const response = await fetch('http://localhost:5000/api/orchestrator/next_turn', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin'
+                });
 
-                    ws.send(JSON.stringify({ type: 'response.create' }));
+                const data = await response.json();
+
+                if (data.success) {
+                    const { agent_id, message, reasoning } = data;
+                    console.log(`🎯 Tour ${data.turn}: ${agent_id} - ${reasoning}`);
+
+                    // Highlight and display message
+                    highlightParticipant(agent_id);
+                    addMessage(agent_id, message);
+
+                    // Send text to Anam avatar
+                    await generateAndPlaySpeech(agent_id, message);
+                } else {
+                    console.error('❌ Erreur orchestration:', data.error);
+                    isAutoConversation = false;
                 }
-            }, 2000);
+
+            } catch (error) {
+                console.error('❌ Erreur nextTurn:', error);
+                isAutoConversation = false;
+            }
         }
 
         async function startMeeting() {
             try {
-                // Get token
-                const tokenRes = await fetch('http://localhost:5000/api/token');
-                if (!tokenRes.ok) throw new Error('Failed to get token');
-                const { token } = await tokenRes.json();
+                console.log('🎬 Starting meeting with orchestrator...');
 
-                // Get agents config
-                const configRes = await fetch('http://localhost:5000/api/agents_config');
-                if (!configRes.ok) throw new Error('Failed to load agents config');
-                const config = await configRes.json();
-                const orchestratorPrompt = config.orchestrator_prompt;
-
-                console.log('✅ Config loaded');
-
-                // Connect WebSocket
-                const url = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17';
-                ws = new WebSocket(url, ['realtime', `openai-insecure-api-key.${token}`]);
-
-                ws.onopen = async () => {
-                    console.log('✅ Connected');
-
-                    ws.send(JSON.stringify({
-                        type: 'session.update',
-                        session: {
-                            modalities: ['text'],
-                            instructions: orchestratorPrompt,
-                            voice: 'alloy',
-                            turn_detection: {
-                                type: 'server_vad',
-                                threshold: 0.5,
-                                silence_duration_ms: 700
-                            },
-                            input_audio_transcription: { model: 'whisper-1' }
-                        }
-                    }));
-
-                    await startAudioStreaming();
-
-                    // Send initial greeting to start the conversation
-                    setTimeout(() => {
-                        console.log('🎬 Starting initial conversation...');
-                        const briefData = JSON.parse(sessionStorage.getItem('meetingBrief') || '{}');
-                        const initialPrompt = briefData.name
-                            ? `Let's start the brainstorming session for "${briefData.name}". Context: ${briefData.context}. Objective: ${briefData.objective}. Facilitator, please begin by asking the first question to one of the experts.`
-                            : `Let's start the brainstorming session. Facilitator, please begin by asking the first question.`;
-
-                        ws.send(JSON.stringify({
-                            type: 'conversation.item.create',
-                            item: {
-                                type: 'message',
-                                role: 'user',
-                                content: [{
-                                    type: 'input_text',
-                                    text: initialPrompt
-                                }]
-                            }
-                        }));
-
-                        ws.send(JSON.stringify({ type: 'response.create' }));
-                    }, 1000);
+                // Get meeting context from session storage
+                const briefData = JSON.parse(sessionStorage.getItem('meetingBrief') || '{}');
+                const meetingContext = {
+                    companyName: briefData.name || 'Nouveau Projet',
+                    companyContext: briefData.context || 'Brainstorming session',
+                    meetingObjective: briefData.objective || 'Développer une solution innovante'
                 };
 
-                ws.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
+                // Initialize orchestrator with context
+                const initResponse = await fetch('http://localhost:5000/api/orchestrator/init', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ context: meetingContext })
+                });
 
-                    // Log all events for debugging
-                    if (!data.type.includes('input_audio_buffer')) {
-                        console.log('📨 WebSocket event:', data.type, data);
-                    }
+                const initData = await initResponse.json();
+                if (!initData.success) {
+                    throw new Error('Failed to initialize orchestrator');
+                }
 
-                    switch (data.type) {
-                        case 'conversation.item.input_audio_transcription.completed':
-                            addMessage('user', data.transcript);
-                            isAutoConversation = true;
-                            conversationTurns = 0;
-                            break;
+                console.log('✅ Orchestrator initialized with context');
 
-                        case 'response.text.done':
-                        case 'response.done':
-                            if (data.response && data.response.output && data.response.output.length > 0) {
-                                const output = data.response.output[0];
-                                if (output.content && output.content.length > 0) {
-                                    const text = output.content[0].text;
+                // Enable auto conversation
+                isAutoConversation = true;
+                conversationTurns = 0;
 
-                                    const match = text.match(/\[AGENT:\s*(\w+)\](.*)/is);
-                                    if (match) {
-                                        const agentName = match[1].toLowerCase();
-                                        const message = match[2].trim();
-
-                                        let agentId = 'facilitateur';
-                                        for (const [id, agent] of Object.entries(AGENTS)) {
-                                            if (agent.name.toLowerCase().includes(agentName) || id === agentName) {
-                                                agentId = id;
-                                                break;
-                                            }
-                                        }
-
-                                        highlightParticipant(agentId);
-                                        addMessage(agentId, message);
-
-                                        if (agentId === 'facilitateur') {
-                                            highlightParticipant(null);
-                                            if (isAutoConversation) {
-                                                setTimeout(() => triggerNextAgent(), 500);
-                                            }
-                                        } else {
-                                            generateAndPlaySpeech(agentId, message);
-                                        }
-                                    } else {
-                                        highlightParticipant('facilitateur');
-                                        addMessage('facilitateur', text);
-                                        highlightParticipant(null);
-
-                                        if (isAutoConversation) {
-                                            setTimeout(() => triggerNextAgent(), 500);
-                                        }
-                                    }
-                                }
-                            }
-                            break;
-                    }
-                };
-
-                ws.onerror = (error) => {
-                    console.error('WebSocket error:', error);
-                };
+                // Start first turn
+                await triggerNextAgent();
 
             } catch (error) {
-                console.error('Connection error:', error);
+                console.error('❌ Error starting meeting:', error);
                 alert('Erreur: ' + error.message);
             }
         }
 
-        async function startAudioStreaming() {
-            audioContext = new AudioContext({ sampleRate: 24000 });
-            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-            const source = audioContext.createMediaStreamSource(mediaStream);
-            const processor = audioContext.createScriptProcessor(4096, 1, 1);
-
-            processor.onaudioprocess = (e) => {
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    const inputData = e.inputBuffer.getChannelData(0);
-
-                    const targetLength = Math.floor(inputData.length * 24000 / audioContext.sampleRate);
-                    const resampled = new Float32Array(targetLength);
-                    for (let i = 0; i < targetLength; i++) {
-                        const srcIndex = Math.floor(i * audioContext.sampleRate / 24000);
-                        resampled[i] = inputData[srcIndex];
-                    }
-
-                    const int16 = new Int16Array(resampled.length);
-                    for (let i = 0; i < resampled.length; i++) {
-                        const s = Math.max(-1, Math.min(1, resampled[i]));
-                        int16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
-                    }
-
-                    const bytes = new Uint8Array(int16.buffer);
-                    let binary = '';
-                    for (let i = 0; i < bytes.length; i++) {
-                        binary += String.fromCharCode(bytes[i]);
-                    }
-
-                    ws.send(JSON.stringify({
-                        type: 'input_audio_buffer.append',
-                        audio: btoa(binary)
-                    }));
-                }
-            };
-
-            source.connect(processor);
-            processor.connect(audioContext.destination);
-        }
+        // Audio streaming not needed anymore - using orchestrator API instead of OpenAI Realtime
+        // Keeping mic input for future user interaction if needed
 
         async function initializeAnamAvatars() {
             if (!ANAM_ENABLED) {
@@ -1287,10 +1122,30 @@
                             continue;
                         }
 
-                        const { session_token } = await response.json();
-                        console.log(`✅ Got session token for ${agentId}`);
+                        const responseData = await response.json();
+                        console.log(`✅ Full response for ${agentId}:`, responseData);
 
-                        // Initialize Anam client using createClient from the SDK
+                        const { session_token, persona } = responseData;
+                        console.log(`🔑 Token type: ${typeof session_token}`);
+                        console.log(`🔑 Token value:`, session_token);
+                        console.log(`🔑 Token length: ${session_token ? session_token.length : 0}`);
+                        console.log(`📋 Persona config:`, persona);
+
+                        // Validate token format (JWT should have 2 dots)
+                        if (!session_token || typeof session_token !== 'string') {
+                            console.error(`❌ Invalid token: not a string`);
+                            continue;
+                        }
+
+                        const dotCount = (session_token.match(/\./g) || []).length;
+                        console.log(`🔍 Token has ${dotCount} dots (should be 2 for JWT)`);
+
+                        if (dotCount !== 2) {
+                            console.error(`❌ Invalid JWT format: expected 2 dots, got ${dotCount}`);
+                            continue;
+                        }
+
+                        // Initialize Anam client using SDK
                         const { createClient } = window.anam;
                         if (!createClient) {
                             console.error('❌ createClient function not found in Anam SDK');
@@ -1298,6 +1153,9 @@
                             continue;
                         }
 
+                        // createClient only takes the session token string
+                        // personaConfig was already sent when creating the token server-side
+                        console.log(`🔧 Creating client with token...`);
                         const client = createClient(session_token);
 
                         // Stream to video element
@@ -1309,7 +1167,10 @@
                         // Show video, hide icon
                         const videoElement = document.getElementById(videoElementId);
                         videoElement.style.display = 'block';
-                        console.log(`✅ Anam avatar initialized for ${agentId}`);
+
+                        // Don't start session yet - wait for user interaction
+                        // Sessions will be started on first use
+                        console.log(`✅ Anam avatar initialized for ${agentId} (session will start on first interaction)`);
 
                     } catch (error) {
                         console.error(`❌ Error initializing avatar for ${agentId}:`, error);
@@ -1326,24 +1187,52 @@
                 // If Anam is available, send text to avatar
                 if (ANAM_ENABLED && anamClients[agentId]) {
                     try {
-                        // Send text to Anam avatar to speak
-                        const sendTextMethod = anamClients[agentId].streamText || anamClients[agentId].sendText;
-                        if (sendTextMethod) {
-                            await sendTextMethod.call(anamClients[agentId], text);
-                            console.log(`📹 Sent text to Anam avatar for ${agentId}: "${text.substring(0, 50)}..."`);
+                        const client = anamClients[agentId];
 
-                            // Wait for avatar to finish speaking (estimate based on text length)
-                            const estimatedDuration = (text.length / 15) * 1000; // ~15 chars per second
-                            setTimeout(() => {
-                                highlightParticipant(null);
-                                if (isAutoConversation) {
-                                    setTimeout(() => triggerNextAgent(), 1000);
-                                }
-                            }, estimatedDuration);
-                            return;
-                        } else {
-                            console.warn('⚠️ sendText/streamText method not found on Anam client');
+                        // Start session on first use (requires user interaction)
+                        if (!client._sessionStarted) {
+                            console.log(`🎬 Starting Anam session for ${agentId} (first use)...`);
+                            try {
+                                await client.startSession();
+                                client._sessionStarted = true;
+                                console.log(`✅ Anam session started for ${agentId}`);
+
+                                // Wait for peer connection to be established
+                                console.log(`⏳ Waiting for WebRTC connection...`);
+                                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds for connection
+                                console.log(`✅ WebRTC connection should be ready`);
+                            } catch (sessionError) {
+                                console.warn(`⚠️ Could not start session for ${agentId}:`, sessionError);
+                                throw sessionError;
+                            }
                         }
+
+                        console.log(`🎤 Sending text to Anam avatar ${agentId}:`, text);
+                        console.log(`📋 Available methods:`, Object.keys(client));
+
+                        // Use Anam's talk() method to make the avatar speak
+                        if (typeof client.talk === 'function') {
+                            await client.talk(text);
+                            console.log(`✅ Used talk() for ${agentId}`);
+                        } else if (client.streamingClient && typeof client.streamingClient.talk === 'function') {
+                            await client.streamingClient.talk(text);
+                            console.log(`✅ Used streamingClient.talk() for ${agentId}`);
+                        } else {
+                            console.warn('⚠️ No talk method found, available:', Object.keys(client));
+                            console.warn('⚠️ StreamingClient methods:', client.streamingClient ? Object.keys(client.streamingClient) : 'N/A');
+                            throw new Error('No talk method available');
+                        }
+
+                        // Wait for avatar to finish speaking, then trigger next agent
+                        const estimatedDuration = (text.length / 15) * 1000;
+                        setTimeout(() => {
+                            highlightParticipant(null);
+                            if (isAutoConversation && conversationTurns < maxTurns) {
+                                setTimeout(() => triggerNextAgent(), 500);
+                            }
+                        }, estimatedDuration);
+                        return;
+
                     } catch (anamError) {
                         console.warn('⚠️ Anam playback failed, falling back to ElevenLabs', anamError);
                     }
@@ -1368,8 +1257,8 @@
                     URL.revokeObjectURL(audioUrl);
                     highlightParticipant(null);
 
-                    if (isAutoConversation) {
-                        setTimeout(() => triggerNextAgent(), 1000);
+                    if (isAutoConversation && conversationTurns < maxTurns) {
+                        setTimeout(() => triggerNextAgent(), 500);
                     }
                 };
 
@@ -1380,9 +1269,55 @@
         }
 
         // Start meeting on load
-        startMeeting().then(() => {
-            // Initialize Anam avatars after meeting is started
-            initializeAnamAvatars();
+        // Don't start automatically - wait for user click
+        let meetingStarted = false;
+
+        async function handleStartClick() {
+            if (meetingStarted) return;
+            meetingStarted = true;
+
+            // Hide start button
+            const startBtn = document.getElementById('startMeetingBtn');
+            if (startBtn) startBtn.style.display = 'none';
+
+            // Initialize Anam avatars first
+            await initializeAnamAvatars();
+
+            // Then start meeting
+            await startMeeting();
+        }
+
+        // Create start button
+        window.addEventListener('DOMContentLoaded', () => {
+            const startBtn = document.createElement('button');
+            startBtn.id = 'startMeetingBtn';
+            startBtn.innerHTML = '🎬 Démarrer le Meeting';
+            startBtn.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 9999;
+                padding: 20px 40px;
+                font-size: 18px;
+                font-weight: 600;
+                background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                cursor: pointer;
+                box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+                transition: all 0.3s ease;
+            `;
+            startBtn.addEventListener('click', handleStartClick);
+            document.body.appendChild(startBtn);
+
+            startBtn.addEventListener('mouseenter', () => {
+                startBtn.style.transform = 'translate(-50%, -50%) scale(1.05)';
+            });
+            startBtn.addEventListener('mouseleave', () => {
+                startBtn.style.transform = 'translate(-50%, -50%) scale(1)';
+            });
         });
     </script>
 </body>

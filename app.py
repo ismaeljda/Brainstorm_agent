@@ -74,8 +74,18 @@ def meeting_room():
 @app.route('/static/anam-sdk.js')
 def anam_sdk():
     """Serve Anam SDK locally."""
-    sdk_path = os.path.join(os.path.dirname(__file__), 'node_modules/@anam-ai/js-sdk/dist/umd/anam.js')
-    return send_file(sdk_path, mimetype='application/javascript')
+    try:
+        sdk_path = os.path.join(os.path.dirname(__file__), 'node_modules/@anam-ai/js-sdk/dist/umd/anam.js')
+        print(f"🔍 Tentative de chargement SDK Anam depuis: {sdk_path}")
+        print(f"📁 Fichier existe: {os.path.exists(sdk_path)}")
+
+        if not os.path.exists(sdk_path):
+            return jsonify({'error': 'Anam SDK not found', 'path': sdk_path}), 404
+
+        return send_file(sdk_path, mimetype='application/javascript')
+    except Exception as e:
+        print(f"❌ Erreur chargement SDK Anam: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/transcribe', methods=['POST'])
@@ -459,40 +469,48 @@ def create_anam_session():
         data = request.get_json(silent=True) or {}
         persona_id = data.get('persona_id', None)
 
+        # Load full prompts from agents/prompts.py
+        from agents.prompts import AGENTS_PROMPTS
+
         # Define different avatars and voices for each agent
-        # You can customize these IDs from your Anam Lab account
+        # Using example IDs from Anam docs, with full system prompts
         agent_configs = {
             'facilitateur': {
                 'name': 'Facilitator',
-                'avatarId': '30fa96d0-26c4-4e55-94a0-517025942e18',  # Default Cara avatar
+                'avatarId': '30fa96d0-26c4-4e55-94a0-517025942e18',
                 'voiceId': '6bfbe25a-979d-40f3-a92b-5394170af54b',
-                'llmId': 'llm-gpt-4o-mini-2024-07-18',
-                'systemPrompt': "[STYLE] Reply in natural speech without formatting. Add pauses using '...' and very occasionally a disfluency. [PERSONALITY] You are a professional facilitator who guides brainstorming sessions."
+                'llmId': '0934d97d-0c3a-4f33-91b0-5e136a0ef466',
+                'systemPrompt': AGENTS_PROMPTS['facilitateur']
             },
             'strategie': {
                 'name': 'Business Strategist',
                 'avatarId': '30fa96d0-26c4-4e55-94a0-517025942e18',
                 'voiceId': '6bfbe25a-979d-40f3-a92b-5394170af54b',
-                'llmId': 'llm-gpt-4o-mini-2024-07-18',
-                'systemPrompt': "[STYLE] Reply in natural speech without formatting. Add pauses using '...' and very occasionally a disfluency. [PERSONALITY] You are a business strategist expert."
+                'llmId': '0934d97d-0c3a-4f33-91b0-5e136a0ef466',
+                'systemPrompt': AGENTS_PROMPTS['strategie']
             },
             'tech': {
                 'name': 'Tech Lead',
                 'avatarId': '30fa96d0-26c4-4e55-94a0-517025942e18',
                 'voiceId': '6bfbe25a-979d-40f3-a92b-5394170af54b',
-                'llmId': 'llm-gpt-4o-mini-2024-07-18',
-                'systemPrompt': "[STYLE] Reply in natural speech without formatting. Add pauses using '...' and very occasionally a disfluency. [PERSONALITY] You are a technical architect expert."
+                'llmId': '0934d97d-0c3a-4f33-91b0-5e136a0ef466',
+                'systemPrompt': AGENTS_PROMPTS['tech']
             },
             'creatif': {
                 'name': 'Creative Thinker',
                 'avatarId': '30fa96d0-26c4-4e55-94a0-517025942e18',
                 'voiceId': '6bfbe25a-979d-40f3-a92b-5394170af54b',
-                'llmId': 'llm-gpt-4o-mini-2024-07-18',
-                'systemPrompt': "[STYLE] Reply in natural speech without formatting. Add pauses using '...' and very occasionally a disfluency. [PERSONALITY] You are a creative director expert."
+                'llmId': '0934d97d-0c3a-4f33-91b0-5e136a0ef466',
+                'systemPrompt': AGENTS_PROMPTS['creatif']
             }
         }
 
         persona_config = agent_configs.get(persona_id, agent_configs['facilitateur'])
+
+        # Log la config envoyée
+        print(f"📤 Envoi config Anam pour {persona_id}:")
+        print(f"   Name: {persona_config.get('name')}")
+        print(f"   Config: {persona_config}")
 
         # Créer une session Anam via leur API avec la config complète
         anam_response = requests.post(
@@ -506,22 +524,27 @@ def create_anam_session():
             }
         )
 
+        print(f"📥 Réponse Anam API: {anam_response.status_code}")
+
         if anam_response.status_code != 200:
             print(f"❌ Erreur API Anam: {anam_response.status_code}")
-            print(f"Réponse: {anam_response.text}")
+            print(f"Réponse complète: {anam_response.text}")
+            print(f"Headers: {anam_response.headers}")
             return jsonify({
                 'error': 'Failed to create Anam session',
-                'details': anam_response.text
+                'details': anam_response.text,
+                'status': anam_response.status_code
             }), 500
 
         session_data = anam_response.json()
         print(f"✅ Session Anam créée: {session_data}")
 
-        # The response should contain sessionToken
+        # Return both session token AND persona config for new Anam SDK
         return jsonify({
             'success': True,
             'session_token': session_data.get('sessionToken') or session_data.get('session_token'),
-            'session_id': session_data.get('sessionId') or session_data.get('session_id')
+            'session_id': session_data.get('sessionId') or session_data.get('session_id'),
+            'persona': persona_config  # Required for new Anam SDK
         })
 
     except Exception as e:
