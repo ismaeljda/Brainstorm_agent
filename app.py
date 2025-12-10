@@ -41,7 +41,7 @@ AGENT_VOICES = {
 orchestrators = {}
 
 
-def get_orchestrator(session_id: str):
+def get_orchestrator(session_id: str, meeting_context: dict = None):
     """Récupère ou crée un orchestrateur pour une session."""
     if session_id not in orchestrators:
         from agents.prompts import AGENTS_PROMPTS
@@ -54,7 +54,7 @@ def get_orchestrator(session_id: str):
             'creatif': {'name': 'Creative Thinker', 'prompt': AGENTS_PROMPTS['creatif'], 'voice': 'creatif'}
         }
 
-        orchestrators[session_id] = IntelligentOrchestrator(agents_config)
+        orchestrators[session_id] = IntelligentOrchestrator(agents_config, meeting_context)
 
     return orchestrators[session_id]
 
@@ -308,26 +308,30 @@ IMPORTANT: Fais parler les agents entre eux pour construire la solution ensemble
 
 @app.route('/api/orchestrator/init', methods=['POST'])
 def init_orchestrator():
-    """Initialise une nouvelle session d'orchestration."""
+    """Initialise une nouvelle session d'orchestration avec le contexte du meeting."""
     try:
         import uuid
         session_id = str(uuid.uuid4())
         session['orchestrator_id'] = session_id
 
-        # Créer l'orchestrateur
-        orchestrator = get_orchestrator(session_id)
+        # Récupérer le contexte du meeting
+        data = request.get_json(silent=True) or {}
+        meeting_context = data.get('context', {})
+
+        print(f"📋 Contexte du meeting reçu: {meeting_context}")
+
+        # Créer l'orchestrateur avec le contexte
+        orchestrator = get_orchestrator(session_id, meeting_context)
 
         # Message initial optionnel
-        data = request.get_json(silent=True) or {}
         initial_message = data.get('initial_message', '')
-
         if initial_message:
             orchestrator.add_message('user', initial_message)
 
         return jsonify({
             'success': True,
             'session_id': session_id,
-            'message': 'Orchestrateur initialisé'
+            'message': 'Orchestrateur initialisé avec contexte'
         })
 
     except Exception as e:

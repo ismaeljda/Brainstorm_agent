@@ -17,6 +17,80 @@
         h1 { font-size: 2.5rem; margin-bottom: 10px; }
         .subtitle { opacity: 0.9; font-size: 1.1rem; }
 
+        /* Setup Screen */
+        .setup-screen {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .setup-screen.hidden {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group small {
+            display: block;
+            color: #6b7280;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+
+        .btn-launch {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 15px 50px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-launch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        }
+
         /* Meeting Room */
         .meeting-room {
             background: white;
@@ -24,6 +98,11 @@
             padding: 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             margin-bottom: 20px;
+            display: none;
+        }
+
+        .meeting-room.active {
+            display: block;
         }
 
         /* Agents Grid */
@@ -281,7 +360,47 @@
             <p class="subtitle">Orchestration intelligente avec débat entre agents</p>
         </header>
 
-        <div class="meeting-room">
+        <!-- Setup Screen -->
+        <div class="setup-screen" id="setupScreen">
+            <h2 style="margin-bottom: 30px; color: #1f2937; text-align: center;">⚙️ Configuration du Meeting</h2>
+
+            <form id="setupForm">
+                <div class="form-group">
+                    <label for="companyName">Nom de l'entreprise / Projet</label>
+                    <input
+                        type="text"
+                        id="companyName"
+                        placeholder="Ex: TechStartup, MonProjetApp, etc."
+                        required
+                    >
+                    <small>Le nom de votre entreprise ou projet</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="companyContext">Contexte de l'entreprise</label>
+                    <textarea
+                        id="companyContext"
+                        placeholder="Décrivez votre entreprise, son secteur d'activité, sa taille, ses produits/services..."
+                        required
+                    ></textarea>
+                    <small>Donnez du contexte pour que les agents comprennent votre situation</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="meetingObjective">Objectif de la réunion</label>
+                    <textarea
+                        id="meetingObjective"
+                        placeholder="Que souhaitez-vous accomplir dans ce meeting ? Ex: Définir la stratégie de lancement d'un nouveau produit, analyser la faisabilité technique d'une idée, etc."
+                        required
+                    ></textarea>
+                    <small>Soyez précis sur ce que vous attendez de cette session</small>
+                </div>
+
+                <button type="submit" class="btn-launch">🚀 Lancer le Meeting</button>
+            </form>
+        </div>
+
+        <div class="meeting-room" id="meetingRoom">
             <!-- Agents Grid -->
             <div class="agents-grid">
                 <div class="agent-card" id="agent-facilitateur">
@@ -355,6 +474,16 @@
         let maxTurns = 20;  // Plus de tours pour des discussions riches
         let currentTurn = 0;
 
+        // Contexte du meeting
+        let meetingContext = {
+            companyName: '',
+            companyContext: '',
+            meetingObjective: ''
+        };
+
+        const setupScreen = document.getElementById('setupScreen');
+        const meetingRoom = document.getElementById('meetingRoom');
+        const setupForm = document.getElementById('setupForm');
         const status = document.getElementById('status');
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
@@ -373,6 +502,29 @@
         let audioQueue = [];
         let isPlayingAudio = false;
         let currentAudio = null;
+
+        // Gestion du formulaire de setup
+        setupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Récupérer les valeurs
+            meetingContext.companyName = document.getElementById('companyName').value.trim();
+            meetingContext.companyContext = document.getElementById('companyContext').value.trim();
+            meetingContext.meetingObjective = document.getElementById('meetingObjective').value.trim();
+
+            // Validation
+            if (!meetingContext.companyName || !meetingContext.companyContext || !meetingContext.meetingObjective) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+
+            // Transition vers la meeting room
+            setupScreen.classList.add('hidden');
+            meetingRoom.classList.add('active');
+
+            // Lancer automatiquement le meeting
+            await startMeeting();
+        });
 
         function updateStatus(text, className) {
             status.textContent = text;
@@ -549,16 +701,21 @@
 
         async function initOrchestrator() {
             try {
+                // Envoyer le contexte du meeting à l'orchestrateur
                 const response = await fetch('/api/orchestrator/init', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin'
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        context: meetingContext
+                    })
                 });
 
                 const data = await response.json();
                 if (data.success) {
                     sessionId = data.session_id;
-                    console.log('✅ Orchestrateur initialisé:', sessionId);
+                    console.log('✅ Orchestrateur initialisé avec contexte:', sessionId);
+                    console.log('📋 Contexte:', meetingContext);
                     return true;
                 }
                 return false;
@@ -642,8 +799,11 @@
             stopBtn.style.display = 'inline-block';
             inputSection.classList.add('active');
 
-            addMessage('user', 'Bonjour! Je souhaite discuter avec vous d\'un nouveau projet.', null, false);
-            await addUserMessage('Bonjour! Je souhaite discuter avec vous d\'un nouveau projet.');
+            // Message d'introduction avec le contexte
+            const introMessage = `Bonjour! Je suis ${meetingContext.companyName}. ${meetingContext.companyContext}\n\nObjectif de cette réunion: ${meetingContext.meetingObjective}`;
+
+            addMessage('user', introMessage, null, false);
+            await addUserMessage(introMessage);
 
             // Premier tour
             setTimeout(() => nextTurn(), 1000);

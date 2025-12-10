@@ -33,16 +33,18 @@ class IntelligentOrchestrator:
     en fonction du contexte et de la pertinence.
     """
 
-    def __init__(self, agents_config: Dict):
+    def __init__(self, agents_config: Dict, meeting_context: Optional[Dict] = None):
         """
         Args:
             agents_config: Configuration des agents depuis agents/prompts.py
+            meeting_context: Contexte du meeting (entreprise, objectif, etc.)
         """
         self.agents = agents_config
         self.conversation_history: List[Message] = []
         self.last_speaker: Optional[str] = None
         self.debate_mode = False
         self.turn_count = 0
+        self.meeting_context = meeting_context or {}
 
     def add_message(self, role: str, content: str, timestamp: float = None):
         """Ajoute un message à l'historique."""
@@ -162,16 +164,27 @@ Réponds au format JSON:
         agent_prompt = agent_info.get('prompt', '')
         agent_name = agent_info.get('name', agent_id)
 
+        # Construire le contexte du meeting
+        context_str = ""
+        if self.meeting_context:
+            context_str = f"""
+CONTEXTE DU MEETING:
+- Entreprise/Projet: {self.meeting_context.get('companyName', 'N/A')}
+- Contexte: {self.meeting_context.get('companyContext', 'N/A')}
+- Objectif: {self.meeting_context.get('meetingObjective', 'N/A')}
+"""
+
         # Enrichir le prompt pour encourager les rebonds
         enhanced_prompt = f"""{agent_prompt}
-
+{context_str}
 CONSIGNES DE CONVERSATION:
 - Rebondis DIRECTEMENT sur ce qui vient d'être dit
 - Apporte ton point de vue d'expert {agent_name}
 - Sois réactif et engagé dans la discussion
 - Complète, nuance, approuve ou challenge ce qui a été dit
 - 2-3 phrases maximum, concis et percutant
-- Adresse-toi aux autres agents par leur fonction si tu réagis à leurs propos"""
+- Adresse-toi aux autres agents par leur fonction si tu réagis à leurs propos
+- Garde en tête le contexte et l'objectif du meeting"""
 
         # Construire l'historique avec identification des speakers
         messages = [
