@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meeting en cours — Brainstorm AI</title>
+    <title>Meeting in Progress — Brainstorm AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -16,33 +16,82 @@
         }
 
         :root {
-            --primary: #2563EB;
-            --primary-hover: #1D4ED8;
+            --primary: #3B82F6;
+            --primary-hover: #2563EB;
             --success: #10B981;
             --danger: #EF4444;
             --warning: #F59E0B;
-            --bg: #F9FAFB;
-            --surface: #FFFFFF;
-            --border: #E5E7EB;
-            --text: #111827;
-            --text-secondary: #6B7280;
-            --text-muted: #9CA3AF;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --bg-dark: #0A0F1E;
+            --bg-darker: #060A15;
+            --surface: rgba(15, 23, 42, 0.7);
+            --border: rgba(59, 130, 246, 0.1);
+            --text: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --shadow-sm: 0 0 0 1px rgba(59, 130, 246, 0.05);
+            --shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
 
-            --agent-facilitateur: #2563EB;
+            --agent-facilitateur: #3B82F6;
             --agent-strategie: #EC4899;
             --agent-tech: #10B981;
             --agent-creatif: #F59E0B;
+
+            --gradient-blue: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+            --gradient-pink: linear-gradient(135deg, #EC4899 0%, #F97316 100%);
+            --gradient-green: linear-gradient(135deg, #10B981 0%, #3B82F6 100%);
+            --gradient-orange: linear-gradient(135deg, #F59E0B 0%, #EC4899 100%);
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
+            background: var(--bg-dark);
             color: var(--text);
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
+            position: relative;
+        }
+
+        /* Animated gradient background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+            animation: gradientShift 15s ease infinite;
+            z-index: 0;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+            33% {
+                opacity: 0.8;
+                transform: scale(1.1) rotate(5deg);
+            }
+            66% {
+                opacity: 0.9;
+                transform: scale(1.05) rotate(-5deg);
+            }
+        }
+
+        /* Grid pattern overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+            pointer-events: none;
         }
 
         /* Meeting Container */
@@ -50,17 +99,20 @@
             display: grid;
             grid-template-rows: auto 1fr auto;
             height: 100vh;
+            position: relative;
+            z-index: 2;
         }
 
         /* Header */
         .meeting-header {
             background: var(--surface);
+            backdrop-filter: blur(24px);
             border-bottom: 1px solid var(--border);
             padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow);
             z-index: 100;
         }
 
@@ -74,26 +126,35 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 6px 12px;
-            background: #FEE2E2;
-            border: 1px solid #FECACA;
+            padding: 8px 16px;
+            background: rgba(239, 68, 68, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(239, 68, 68, 0.2);
             border-radius: 20px;
-            color: #991B1B;
+            color: #FCA5A5;
             font-size: 13px;
             font-weight: 500;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
         }
 
         .rec-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: var(--danger);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
             animation: blink 1.5s ease-in-out infinite;
         }
 
         @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+            0%, 100% {
+                opacity: 1;
+                box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+            }
+            50% {
+                opacity: 0.3;
+                box-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
+            }
         }
 
         .meeting-info {
@@ -121,7 +182,8 @@
             width: 36px;
             height: 36px;
             border-radius: 8px;
-            background: transparent;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--border);
             color: var(--text-secondary);
             cursor: pointer;
@@ -132,15 +194,18 @@
         }
 
         .icon-btn:hover {
-            background: var(--bg);
-            border-color: var(--text-muted);
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
             color: var(--text);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
         }
 
         .icon-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
+            background: var(--gradient-blue);
+            border-color: transparent;
             color: white;
+            box-shadow: 0 0 24px rgba(59, 130, 246, 0.4);
         }
 
         /* Main Content */
@@ -152,19 +217,20 @@
 
         /* Participants Grid */
         .participants-section {
-            background: var(--bg);
+            background: transparent;
             padding: 20px;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             grid-template-rows: repeat(2, 1fr);
-            gap: 16px;
+            gap: 20px;
             overflow: hidden;
         }
 
         .participant-card {
             background: var(--surface);
-            border: 2px solid var(--border);
-            border-radius: 16px;
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
             position: relative;
             overflow: hidden;
             box-shadow: var(--shadow);
@@ -173,7 +239,14 @@
 
         .participant-card.speaking {
             border-color: var(--agent-color);
-            box-shadow: 0 0 0 3px rgba(var(--agent-color-rgb), 0.1), var(--shadow-lg);
+            background: linear-gradient(135deg,
+                rgba(var(--agent-color-rgb), 0.05) 0%,
+                rgba(var(--agent-color-rgb), 0.02) 100%),
+                var(--surface);
+            box-shadow:
+                0 0 0 1px var(--agent-color),
+                0 0 40px rgba(var(--agent-color-rgb), 0.3),
+                var(--shadow-lg);
             transform: scale(1.02);
         }
 
@@ -192,26 +265,35 @@
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            background: var(--bg);
-            border: 3px solid var(--border);
+            background: rgba(var(--agent-color-rgb), 0.1);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(var(--agent-color-rgb), 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--agent-color);
             margin-bottom: 16px;
-            box-shadow: var(--shadow);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
         }
 
         .participant-card.speaking .participant-avatar {
             border-color: var(--agent-color);
-            box-shadow: 0 0 0 4px rgba(var(--agent-color-rgb), 0.1), var(--shadow-lg);
+            background: rgba(var(--agent-color-rgb), 0.15);
+            box-shadow:
+                0 0 0 3px rgba(var(--agent-color-rgb), 0.2),
+                0 0 30px rgba(var(--agent-color-rgb), 0.4),
+                0 8px 32px rgba(0, 0, 0, 0.5);
             animation: avatarPulse 2s ease-in-out infinite;
         }
 
         @keyframes avatarPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
         }
 
         .participant-name {
@@ -230,21 +312,33 @@
 
         .speaking-indicator {
             position: absolute;
-            top: 12px;
-            left: 12px;
-            padding: 6px 12px;
+            top: 16px;
+            left: 16px;
+            padding: 8px 14px;
             background: var(--agent-color);
             color: white;
             border-radius: 20px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
             display: none;
             align-items: center;
             gap: 6px;
+            box-shadow: 0 0 20px rgba(var(--agent-color-rgb), 0.5);
+            backdrop-filter: blur(12px);
         }
 
         .participant-card.speaking .speaking-indicator {
             display: flex;
+            animation: indicatorGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes indicatorGlow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(var(--agent-color-rgb), 0.5);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(var(--agent-color-rgb), 0.8);
+            }
         }
 
         .wave-bars {
@@ -292,6 +386,7 @@
         /* Transcript Panel */
         .transcript-panel {
             background: var(--surface);
+            backdrop-filter: blur(24px);
             border-left: 1px solid var(--border);
             display: flex;
             flex-direction: column;
@@ -304,6 +399,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(12px);
         }
 
         .panel-title {
@@ -324,7 +421,7 @@
         }
 
         .transcript-messages::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
 
         .transcript-messages::-webkit-scrollbar-track {
@@ -332,12 +429,12 @@
         }
 
         .transcript-messages::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 3px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 4px;
         }
 
         .transcript-messages::-webkit-scrollbar-thumb:hover {
-            background: var(--text-muted);
+            background: rgba(59, 130, 246, 0.3);
         }
 
         .transcript-message {
@@ -364,15 +461,17 @@
         }
 
         .message-avatar {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            background: var(--bg);
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .message-name {
@@ -416,20 +515,22 @@
         /* Controls */
         .meeting-controls {
             background: var(--surface);
+            backdrop-filter: blur(24px);
             border-top: 1px solid var(--border);
-            padding: 16px 24px;
+            padding: 20px 24px;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 12px;
-            box-shadow: 0 -1px 3px 0 rgba(0, 0, 0, 0.05);
+            gap: 16px;
+            box-shadow: 0 -8px 32px -4px rgba(0, 0, 0, 0.5);
         }
 
         .control-btn {
-            width: 52px;
-            height: 52px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
-            background: var(--surface);
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--border);
             color: var(--text);
             cursor: pointer;
@@ -438,32 +539,36 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .control-btn:hover {
-            background: var(--bg);
-            transform: translateY(-2px);
             box-shadow: var(--shadow);
         }
 
+        .control-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.3), var(--shadow-lg);
+        }
+
         .control-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
+            background: var(--gradient-blue);
+            border-color: transparent;
             color: white;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
         }
 
         .control-btn.danger {
-            background: var(--danger);
-            border-color: var(--danger);
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            border-color: transparent;
             color: white;
-            width: 56px;
-            height: 56px;
+            width: 64px;
+            height: 64px;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
         }
 
         .control-btn.danger:hover {
-            background: #DC2626;
-            transform: scale(1.05);
+            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+            transform: scale(1.08);
+            box-shadow: 0 0 40px rgba(239, 68, 68, 0.6);
         }
 
         .control-label {
@@ -482,9 +587,10 @@
             width: 400px;
             height: 100vh;
             background: var(--surface);
+            backdrop-filter: blur(24px);
             border-left: 1px solid var(--border);
             box-shadow: var(--shadow-lg);
-            transition: right 0.3s ease;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 200;
             display: flex;
             flex-direction: column;
@@ -492,14 +598,17 @@
 
         .brief-sidebar.open {
             right: 0;
+            box-shadow: -20px 0 60px rgba(0, 0, 0, 0.7);
         }
 
         .brief-header {
-            padding: 16px 20px;
+            padding: 20px;
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(12px);
         }
 
         .brief-title {
@@ -512,11 +621,12 @@
         }
 
         .close-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            background: transparent;
-            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
             color: var(--text-muted);
             cursor: pointer;
             display: flex;
@@ -526,8 +636,10 @@
         }
 
         .close-btn:hover {
-            background: var(--bg);
-            color: var(--text);
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
         }
 
         .brief-content {
@@ -554,10 +666,12 @@
             font-size: 14px;
             line-height: 1.6;
             color: var(--text);
-            padding: 12px;
-            background: var(--bg);
+            padding: 14px;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 12px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         /* Responsive */
@@ -600,18 +714,18 @@
             <div class="header-left">
                 <div class="meeting-status">
                     <div class="rec-dot"></div>
-                    <span>En direct</span>
+                    <span>Live</span>
                 </div>
                 <div class="meeting-info">
-                    <div class="meeting-title" id="meetingTitle">Session de brainstorm</div>
+                    <div class="meeting-title" id="meetingTitle">Brainstorming Session</div>
                     <div class="meeting-duration" id="duration">00:00</div>
                 </div>
             </div>
             <div class="header-actions">
-                <button class="icon-btn" id="briefBtn" title="Afficher le brief">
+                <button class="icon-btn" id="briefBtn" title="Show brief">
                     <i data-lucide="file-text" style="width: 18px; height: 18px;"></i>
                 </button>
-                <button class="icon-btn" id="settingsBtn" title="Paramètres">
+                <button class="icon-btn" id="settingsBtn" title="Settings">
                     <i data-lucide="settings" style="width: 18px; height: 18px;"></i>
                 </button>
             </div>
@@ -628,14 +742,14 @@
                             <div class="wave-bar"></div>
                             <div class="wave-bar"></div>
                         </div>
-                        <span>En train de parler</span>
+                        <span>Speaking</span>
                     </div>
                     <div class="participant-content">
                         <div class="participant-avatar">
                             <i data-lucide="target" style="width: 48px; height: 48px;"></i>
                         </div>
-                        <div class="participant-name">Facilitateur</div>
-                        <div class="participant-role">Animateur de réunion</div>
+                        <div class="participant-name">Facilitator</div>
+                        <div class="participant-role">Meeting Moderator</div>
                     </div>
                 </div>
 
@@ -646,14 +760,14 @@
                             <div class="wave-bar"></div>
                             <div class="wave-bar"></div>
                         </div>
-                        <span>En train de parler</span>
+                        <span>Speaking</span>
                     </div>
                     <div class="participant-content">
                         <div class="participant-avatar">
                             <i data-lucide="trending-up" style="width: 48px; height: 48px;"></i>
                         </div>
-                        <div class="participant-name">Stratège Business</div>
-                        <div class="participant-role">Consultant en stratégie</div>
+                        <div class="participant-name">Business Strategist</div>
+                        <div class="participant-role">Strategy Consultant</div>
                     </div>
                 </div>
 
@@ -664,14 +778,14 @@
                             <div class="wave-bar"></div>
                             <div class="wave-bar"></div>
                         </div>
-                        <span>En train de parler</span>
+                        <span>Speaking</span>
                     </div>
                     <div class="participant-content">
                         <div class="participant-avatar">
                             <i data-lucide="code" style="width: 48px; height: 48px;"></i>
                         </div>
                         <div class="participant-name">Tech Lead</div>
-                        <div class="participant-role">Architecte technique</div>
+                        <div class="participant-role">Technical Architect</div>
                     </div>
                 </div>
 
@@ -682,7 +796,7 @@
                             <div class="wave-bar"></div>
                             <div class="wave-bar"></div>
                         </div>
-                        <span>En train de parler</span>
+                        <span>Speaking</span>
                     </div>
                     <div class="participant-content">
                         <div class="participant-avatar">
@@ -705,7 +819,7 @@
                         <div class="empty-icon">
                             <i data-lucide="message-square" style="width: 100%; height: 100%;"></i>
                         </div>
-                        <div>Le transcript apparaîtra ici</div>
+                        <div>Transcript will appear here</div>
                     </div>
                 </div>
             </aside>
@@ -715,15 +829,15 @@
         <div class="meeting-controls">
             <button class="control-btn active" id="micBtn" title="Microphone">
                 <i data-lucide="mic" style="width: 20px; height: 20px;"></i>
-                <span class="control-label">Micro</span>
+                <span class="control-label">Mic</span>
             </button>
-            <button class="control-btn danger" id="leaveBtn" title="Quitter">
+            <button class="control-btn danger" id="leaveBtn" title="Leave">
                 <i data-lucide="phone-off" style="width: 22px; height: 22px;"></i>
-                <span class="control-label">Quitter</span>
+                <span class="control-label">Leave</span>
             </button>
-            <button class="control-btn" id="shareBtn" title="Partager">
+            <button class="control-btn" id="shareBtn" title="Share">
                 <i data-lucide="share-2" style="width: 20px; height: 20px;"></i>
-                <span class="control-label">Partager</span>
+                <span class="control-label">Share</span>
             </button>
         </div>
     </div>
@@ -733,7 +847,7 @@
         <div class="brief-header">
             <div class="brief-title">
                 <i data-lucide="file-text" style="width: 18px; height: 18px;"></i>
-                <span>Brief de la session</span>
+                <span>Session Brief</span>
             </div>
             <button class="close-btn" id="closeBriefBtn">
                 <i data-lucide="x" style="width: 18px; height: 18px;"></i>
@@ -741,20 +855,20 @@
         </div>
         <div class="brief-content">
             <div class="brief-field">
-                <label class="brief-label">Nom du projet</label>
+                <label class="brief-label">Project Name</label>
                 <div class="brief-value" id="briefName">-</div>
             </div>
             <div class="brief-field">
-                <label class="brief-label">Contexte</label>
+                <label class="brief-label">Context</label>
                 <div class="brief-value" id="briefContext">-</div>
             </div>
             <div class="brief-field">
-                <label class="brief-label">Objectif</label>
+                <label class="brief-label">Objective</label>
                 <div class="brief-value" id="briefObjective">-</div>
             </div>
             <div class="brief-field">
-                <label class="brief-label">Documents joints</label>
-                <div class="brief-value" id="briefFiles">Aucun document</div>
+                <label class="brief-label">Attached Documents</label>
+                <div class="brief-value" id="briefFiles">No documents</div>
             </div>
         </div>
     </div>
@@ -769,7 +883,7 @@
         document.getElementById('briefName').textContent = brief.name || '-';
         document.getElementById('briefContext').textContent = brief.context || '-';
         document.getElementById('briefObjective').textContent = brief.objective || '-';
-        document.getElementById('meetingTitle').textContent = brief.name || 'Session de brainstorm';
+        document.getElementById('meetingTitle').textContent = brief.name || 'Brainstorming Session';
 
         if (brief.files && brief.files.length > 0) {
             document.getElementById('briefFiles').innerHTML = brief.files.map(f =>
@@ -808,7 +922,7 @@
         });
 
         leaveBtn.addEventListener('click', () => {
-            if (confirm('Êtes-vous sûr de vouloir quitter le meeting ?')) {
+            if (confirm('Are you sure you want to leave the meeting?')) {
                 window.location.href = '/';
             }
         });
@@ -817,14 +931,14 @@
         const AGENTS = {
             facilitateur: {
                 id: 'facilitateur',
-                name: 'Facilitateur',
+                name: 'Facilitator',
                 icon: 'target',
                 voice: 'facilitateur',
                 color: '#2563EB'
             },
             strategie: {
                 id: 'strategie',
-                name: 'Stratège Business',
+                name: 'Business Strategist',
                 icon: 'trending-up',
                 voice: 'strategie',
                 color: '#EC4899'
@@ -877,13 +991,13 @@
             }
 
             const agent = agentId === 'user' ? {
-                name: 'Vous',
+                name: 'You',
                 icon: 'user',
                 color: '#2563EB'
             } : AGENTS[agentId];
 
             const now = new Date();
-            const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
             const message = document.createElement('div');
             message.className = `transcript-message ${agentId}`;

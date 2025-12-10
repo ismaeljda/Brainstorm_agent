@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brainstorm AI — Créez votre session</title>
+    <title>Brainstorm AI — Create Your Session</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -16,44 +16,86 @@
         }
 
         :root {
-            --primary: #2563EB;
-            --primary-hover: #1D4ED8;
+            --primary: #3B82F6;
+            --primary-light: #60A5FA;
             --success: #10B981;
             --danger: #EF4444;
-            --bg: #F9FAFB;
-            --surface: #FFFFFF;
-            --border: #E5E7EB;
-            --border-focus: #BFDBFE;
-            --text: #111827;
-            --text-secondary: #6B7280;
-            --text-muted: #9CA3AF;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --purple: #8B5CF6;
+            --pink: #EC4899;
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
-            color: var(--text);
+            background: #0A0F1E;
+            color: #E2E8F0;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Animated gradient background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+            animation: gradientShift 15s ease infinite;
+            z-index: 0;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        /* Grid pattern overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
         }
 
         /* Header */
         header {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 16px 24px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: var(--shadow-sm);
+            position: relative;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            padding: 16px 0;
+            margin-bottom: 48px;
+            border-radius: 16px;
+            box-shadow:
+                0 0 0 1px rgba(59, 130, 246, 0.05),
+                0 4px 24px -2px rgba(0, 0, 0, 0.4);
         }
 
         .header-content {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 0 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -62,86 +104,110 @@
         .logo {
             font-size: 20px;
             font-weight: 700;
-            color: var(--text);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            background: linear-gradient(135deg, #60A5FA 0%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--primary);
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
+            box-shadow: 0 0 24px rgba(59, 130, 246, 0.4);
         }
 
         .header-status {
             display: flex;
             align-items: center;
             gap: 8px;
-            color: var(--text-secondary);
-            font-size: 14px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+            font-size: 13px;
+            color: #6EE7B7;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: var(--success);
+            box-shadow: 0 0 8px var(--success);
             animation: pulse 2s ease-in-out infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
         }
 
-        /* Main Container */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 48px 24px;
+        /* Main Grid */
+        .main-grid {
             display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 32px;
+            grid-template-columns: 1fr 420px;
+            gap: 24px;
             align-items: start;
         }
 
-        /* Left Column - Chat */
-        .chat-section {
-            max-width: 800px;
-        }
-
+        /* Page Header */
         .page-header {
             margin-bottom: 32px;
         }
 
         .page-title {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 700;
-            color: var(--text);
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #E2E8F0 0%, #94A3B8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             line-height: 1.2;
         }
 
         .page-subtitle {
-            color: var(--text-secondary);
+            color: #94A3B8;
             font-size: 16px;
             line-height: 1.6;
         }
 
-        .chat-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            box-shadow: var(--shadow);
+        /* Glass Card */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 20px;
+            box-shadow:
+                0 0 0 1px rgba(59, 130, 246, 0.05),
+                0 8px 32px -4px rgba(0, 0, 0, 0.5);
             overflow: hidden;
+            position: relative;
         }
 
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(59, 130, 246, 0.3) 50%,
+                transparent 100%);
+        }
+
+        /* Chat Messages */
         .chat-messages {
             padding: 24px;
             min-height: 400px;
@@ -154,21 +220,22 @@
         }
 
         .chat-messages::-webkit-scrollbar-track {
-            background: transparent;
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 3px;
         }
 
         .chat-messages::-webkit-scrollbar-thumb {
-            background: var(--border);
+            background: rgba(59, 130, 246, 0.3);
             border-radius: 3px;
         }
 
         .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: var(--text-muted);
+            background: rgba(59, 130, 246, 0.5);
         }
 
         .message {
             margin-bottom: 20px;
-            animation: messageSlideIn 0.3s ease-out;
+            animation: messageSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @keyframes messageSlideIn {
@@ -201,31 +268,33 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            background: var(--bg);
-            border: 1px solid var(--border);
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
         .message.ai .message-avatar {
-            background: var(--primary);
-            border-color: var(--primary);
+            background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+            border: none;
             color: white;
+            box-shadow: 0 0 16px rgba(59, 130, 246, 0.4);
         }
 
         .message-content {
-            background: var(--bg);
-            padding: 12px 16px;
-            border-radius: 12px;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            padding: 14px 18px;
+            border-radius: 16px;
             max-width: 80%;
             line-height: 1.6;
             font-size: 15px;
-            color: var(--text);
-            border: 1px solid var(--border);
+            color: #E2E8F0;
+            border: 1px solid rgba(71, 85, 105, 0.3);
         }
 
         .message.user .message-content {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 24px rgba(59, 130, 246, 0.2);
         }
 
         .typing-indicator {
@@ -242,17 +311,18 @@
         .typing-dots {
             display: flex;
             gap: 4px;
-            padding: 12px 16px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
+            padding: 14px 18px;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 16px;
         }
 
         .typing-dots span {
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: var(--text-muted);
+            background: #60A5FA;
             animation: typing 1.4s ease-in-out infinite;
         }
 
@@ -264,10 +334,12 @@
             30% { transform: translateY(-8px); opacity: 1; }
         }
 
+        /* Chat Input Area */
         .chat-input-area {
-            padding: 16px 24px;
-            border-top: 1px solid var(--border);
-            background: var(--surface);
+            padding: 20px 24px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(59, 130, 246, 0.1);
         }
 
         .chat-input-container {
@@ -277,64 +349,69 @@
         }
 
         .icon-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            color: #94A3B8;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .icon-btn:hover {
-            background: var(--bg);
-            border-color: var(--text-muted);
-            color: var(--text);
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.4);
+            color: #60A5FA;
+            transform: translateY(-2px);
         }
 
         .chat-input {
             flex: 1;
-            padding: 10px 16px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
+            padding: 12px 18px;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 10px;
+            color: #E2E8F0;
             font-size: 15px;
             font-family: 'Inter', sans-serif;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
 
         .chat-input:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--border-focus);
+            border-color: rgba(59, 130, 246, 0.6);
+            background: rgba(30, 41, 59, 0.8);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .chat-input::placeholder {
-            color: var(--text-muted);
+            color: #64748B;
         }
 
         .send-btn {
-            padding: 10px 20px;
-            background: var(--primary);
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-weight: 500;
+            border-radius: 10px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-size: 14px;
             display: flex;
             align-items: center;
             gap: 6px;
+            box-shadow: 0 0 24px rgba(59, 130, 246, 0.3);
         }
 
         .send-btn:hover:not(:disabled) {
-            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 0 32px rgba(59, 130, 246, 0.5);
         }
 
         .send-btn:disabled {
@@ -346,7 +423,7 @@
             display: none;
         }
 
-        /* Files */
+        /* Files Section */
         .files-section {
             margin-top: 16px;
         }
@@ -358,9 +435,10 @@
         }
 
         .file-item {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 10px;
             padding: 12px;
             display: flex;
             align-items: center;
@@ -371,13 +449,14 @@
         .file-icon-wrapper {
             width: 36px;
             height: 36px;
-            background: var(--primary);
-            border-radius: 6px;
+            background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             flex-shrink: 0;
+            box-shadow: 0 0 16px rgba(59, 130, 246, 0.3);
         }
 
         .file-info {
@@ -388,7 +467,7 @@
         .file-name {
             font-size: 14px;
             font-weight: 500;
-            color: var(--text);
+            color: #E2E8F0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -396,7 +475,7 @@
 
         .file-size {
             font-size: 12px;
-            color: var(--text-secondary);
+            color: #64748B;
         }
 
         .file-remove {
@@ -405,7 +484,7 @@
             border-radius: 6px;
             background: transparent;
             border: none;
-            color: var(--text-muted);
+            color: #64748B;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -414,22 +493,39 @@
         }
 
         .file-remove:hover {
-            background: var(--border);
-            color: var(--danger);
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
         }
 
-        /* Right Column - Brief */
+        /* Brief Sidebar */
         .brief-sidebar {
             position: sticky;
-            top: 88px;
+            top: 40px;
         }
 
         .brief-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 20px;
             padding: 24px;
-            box-shadow: var(--shadow);
+            box-shadow:
+                0 0 0 1px rgba(59, 130, 246, 0.05),
+                0 8px 32px -4px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .brief-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(59, 130, 246, 0.3) 50%,
+                transparent 100%);
         }
 
         .brief-header {
@@ -438,24 +534,25 @@
             gap: 12px;
             margin-bottom: 24px;
             padding-bottom: 16px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(71, 85, 105, 0.3);
         }
 
         .brief-icon {
             width: 40px;
             height: 40px;
-            background: var(--primary);
-            border-radius: 8px;
+            background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
+            box-shadow: 0 0 24px rgba(59, 130, 246, 0.4);
         }
 
         .brief-title {
             font-size: 16px;
             font-weight: 600;
-            color: var(--text);
+            color: #E2E8F0;
         }
 
         .brief-field {
@@ -463,39 +560,39 @@
         }
 
         .brief-label {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            color: var(--text-secondary);
+            color: #64748B;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
             margin-bottom: 8px;
             display: block;
         }
 
         .brief-value {
             font-size: 14px;
-            color: var(--text);
+            color: #CBD5E1;
             line-height: 1.6;
             padding: 12px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 10px;
             min-height: 44px;
         }
 
         .brief-value.empty {
-            color: var(--text-muted);
+            color: #64748B;
             font-style: italic;
         }
 
         .brief-value.updating {
-            animation: briefUpdate 0.4s ease;
+            animation: briefGlow 0.6s ease;
         }
 
-        @keyframes briefUpdate {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.01); background: white; }
-            100% { transform: scale(1); }
+        @keyframes briefGlow {
+            0% { box-shadow: none; }
+            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); border-color: rgba(59, 130, 246, 0.6); }
+            100% { box-shadow: none; }
         }
 
         .brief-files-list {
@@ -509,7 +606,7 @@
             align-items: center;
             gap: 8px;
             font-size: 13px;
-            color: var(--text-secondary);
+            color: #94A3B8;
         }
 
         .completion-badge {
@@ -517,12 +614,13 @@
             align-items: center;
             gap: 8px;
             padding: 12px;
-            background: #ECFDF5;
-            border: 1px solid #A7F3D0;
-            border-radius: 8px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 10px;
             margin-bottom: 16px;
-            color: #065F46;
+            color: #6EE7B7;
             font-size: 14px;
+            box-shadow: 0 0 24px rgba(16, 185, 129, 0.2);
         }
 
         .completion-badge.active {
@@ -532,25 +630,25 @@
 
         .start-meeting-btn {
             width: 100%;
-            padding: 14px;
-            background: var(--success);
+            padding: 16px;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            box-shadow: 0 0 32px rgba(16, 185, 129, 0.3);
         }
 
         .start-meeting-btn:hover:not(:disabled) {
-            background: #059669;
-            transform: translateY(-1px);
-            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.5);
         }
 
         .start-meeting-btn:disabled {
@@ -560,7 +658,7 @@
 
         /* Responsive */
         @media (max-width: 1024px) {
-            .container {
+            .main-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -575,138 +673,136 @@
             }
 
             .page-title {
-                font-size: 24px;
-            }
-
-            .chat-input-container {
-                flex-wrap: wrap;
+                font-size: 28px;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <div class="logo">
-                <div class="logo-icon">
-                    <i data-lucide="bot" style="width: 20px; height: 20px;"></i>
-                </div>
-                <span>Brainstorm AI</span>
-            </div>
-            <div class="header-status">
-                <div class="status-dot"></div>
-                <span>Assistant prêt</span>
-            </div>
-        </div>
-    </header>
-
     <div class="container">
-        <!-- Left: Chat -->
-        <div class="chat-section">
-            <div class="page-header">
-                <h1 class="page-title">Préparez votre session de brainstorm</h1>
-                <p class="page-subtitle">Notre assistant virtuel va vous aider à créer le brief parfait pour votre réunion.</p>
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i data-lucide="brain-circuit" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span>Brainstorm AI</span>
+                </div>
+                <div class="header-status">
+                    <div class="status-dot"></div>
+                    <span>Assistant Ready</span>
+                </div>
             </div>
+        </header>
 
-            <div class="chat-card">
-                <div class="chat-messages" id="chatMessages">
-                    <div class="message ai">
+        <div class="page-header">
+            <h1 class="page-title">Prepare Your Brainstorming Session</h1>
+            <p class="page-subtitle">Our virtual assistant will help you create the perfect brief for your meeting.</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Chat Section -->
+            <div>
+                <div class="glass-card">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message ai">
+                            <div class="message-avatar">
+                                <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                            </div>
+                            <div class="message-content">
+                                Hello! I'm your virtual assistant. I'll help you prepare your brainstorming session.<br><br>
+                                To start, what is the name of your company or project?
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="typing-indicator" id="typingIndicator">
                         <div class="message-avatar">
                             <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
                         </div>
-                        <div class="message-content">
-                            Bonjour ! Je suis votre assistant virtuel. Je vais vous aider à préparer votre session de brainstorm.<br><br>
-                            Pour commencer, quel est le nom de votre entreprise ou projet ?
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
                         </div>
                     </div>
-                </div>
 
-                <div class="typing-indicator" id="typingIndicator">
-                    <div class="message-avatar">
-                        <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
-                    </div>
-                    <div class="typing-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                </div>
+                    <div class="chat-input-area">
+                        <div class="chat-input-container">
+                            <button class="icon-btn" id="uploadBtn" title="Attach files">
+                                <i data-lucide="paperclip" style="width: 18px; height: 18px;"></i>
+                            </button>
+                            <input
+                                type="file"
+                                class="file-input"
+                                id="fileInput"
+                                multiple
+                                accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.pptx,.ppt"
+                            >
+                            <input
+                                type="text"
+                                class="chat-input"
+                                id="chatInput"
+                                placeholder="Type your answer..."
+                                autocomplete="off"
+                            >
+                            <button class="send-btn" id="sendBtn">
+                                <span>Send</span>
+                                <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+                            </button>
+                        </div>
 
-                <div class="chat-input-area">
-                    <div class="chat-input-container">
-                        <button class="icon-btn" id="uploadBtn" title="Joindre des fichiers">
-                            <i data-lucide="paperclip" style="width: 18px; height: 18px;"></i>
-                        </button>
-                        <input
-                            type="file"
-                            class="file-input"
-                            id="fileInput"
-                            multiple
-                            accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.pptx,.ppt"
-                        >
-                        <input
-                            type="text"
-                            class="chat-input"
-                            id="chatInput"
-                            placeholder="Tapez votre réponse..."
-                            autocomplete="off"
-                        >
-                        <button class="send-btn" id="sendBtn">
-                            <span>Envoyer</span>
-                            <i data-lucide="send" style="width: 16px; height: 16px;"></i>
-                        </button>
-                    </div>
-
-                    <div class="files-section" id="filesSection" style="display: none;">
-                        <div class="files-list" id="filesList"></div>
+                        <div class="files-section" id="filesSection" style="display: none;">
+                            <div class="files-list" id="filesList"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Right: Brief -->
-        <div class="brief-sidebar">
-            <div class="brief-card">
-                <div class="brief-header">
-                    <div class="brief-icon">
-                        <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
+            <!-- Brief Sidebar -->
+            <div class="brief-sidebar">
+                <div class="brief-card">
+                    <div class="brief-header">
+                        <div class="brief-icon">
+                            <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div class="brief-title">Session Brief</div>
                     </div>
-                    <div class="brief-title">Brief de la session</div>
-                </div>
 
-                <div class="brief-field">
-                    <label class="brief-label">Nom du projet</label>
-                    <div class="brief-value empty" id="briefName">En attente...</div>
-                </div>
+                    <div class="brief-field">
+                        <label class="brief-label">Project Name</label>
+                        <div class="brief-value empty" id="briefName">Waiting...</div>
+                    </div>
 
-                <div class="brief-field">
-                    <label class="brief-label">Contexte</label>
-                    <div class="brief-value empty" id="briefContext">En attente...</div>
-                </div>
+                    <div class="brief-field">
+                        <label class="brief-label">Context</label>
+                        <div class="brief-value empty" id="briefContext">Waiting...</div>
+                    </div>
 
-                <div class="brief-field">
-                    <label class="brief-label">Objectif</label>
-                    <div class="brief-value empty" id="briefObjective">En attente...</div>
-                </div>
+                    <div class="brief-field">
+                        <label class="brief-label">Objective</label>
+                        <div class="brief-value empty" id="briefObjective">Waiting...</div>
+                    </div>
 
-                <div class="brief-field">
-                    <label class="brief-label">Documents joints</label>
-                    <div class="brief-value empty" id="briefFilesDisplay">
-                        <div class="brief-files-list" id="briefFilesList">
-                            Aucun document
+                    <div class="brief-field">
+                        <label class="brief-label">Attached Documents</label>
+                        <div class="brief-value empty" id="briefFilesDisplay">
+                            <div class="brief-files-list" id="briefFilesList">
+                                No documents
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="completion-badge" id="completionBadge">
-                    <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
-                    <span>Brief complet ! Prêt à lancer.</span>
-                </div>
+                    <div class="completion-badge" id="completionBadge">
+                        <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                        <span>Brief complete! Ready to launch.</span>
+                    </div>
 
-                <button class="start-meeting-btn" id="startMeetingBtn" disabled>
-                    <i data-lucide="video" style="width: 18px; height: 18px;"></i>
-                    <span>Lancer le meeting</span>
-                </button>
+                    <button class="start-meeting-btn" id="startMeetingBtn" disabled>
+                        <i data-lucide="video" style="width: 18px; height: 18px;"></i>
+                        <span>Start Meeting</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -745,9 +841,9 @@
         };
 
         const questions = [
-            "Pour commencer, quel est le nom de votre entreprise ou projet ?",
-            "Parfait ! Maintenant, pouvez-vous me donner un peu de contexte ? Décrivez votre entreprise, son secteur d'activité, sa taille, ses produits/services...",
-            "Excellent ! Enfin, quel est l'objectif principal de cette session de brainstorm ? Que souhaitez-vous accomplir ?"
+            "To start, what is the name of your company or project?",
+            "Perfect! Now, can you give me some context? Describe your company, its industry, size, products/services...",
+            "Excellent! Finally, what is the main objective of this brainstorming session? What do you wish to accomplish?"
         ];
 
         function addMessage(content, isUser = false) {
@@ -777,7 +873,7 @@
             element.textContent = value;
             element.classList.remove('empty');
             element.classList.add('updating');
-            setTimeout(() => element.classList.remove('updating'), 400);
+            setTimeout(() => element.classList.remove('updating'), 600);
         }
 
         function showTyping() {
@@ -816,7 +912,6 @@
         function addFile(file) {
             conversationState.brief.files.push(file);
 
-            // Add to files list
             const fileItem = document.createElement('div');
             fileItem.className = 'file-item';
             fileItem.innerHTML = `
@@ -836,10 +931,8 @@
             filesSection.style.display = 'block';
             lucide.createIcons();
 
-            // Update brief display
             updateBriefFiles();
 
-            // Remove handler
             fileItem.querySelector('.file-remove').addEventListener('click', () => {
                 removeFile(file.name);
                 fileItem.remove();
@@ -856,7 +949,7 @@
 
         function updateBriefFiles() {
             if (conversationState.brief.files.length === 0) {
-                briefFilesList.innerHTML = 'Aucun document';
+                briefFilesList.innerHTML = 'No documents';
                 briefFilesDisplay.classList.add('empty');
                 return;
             }
@@ -893,7 +986,7 @@
             if (conversationState.step < questions.length) {
                 addMessage(questions[conversationState.step]);
             } else {
-                addMessage("Parfait ! Votre brief est complet. Vous pouvez ajouter des documents si nécessaire, puis lancer votre session de brainstorm.");
+                addMessage("Perfect! Your brief is complete. You can add documents if needed, then start your brainstorming session.");
                 startMeetingBtn.disabled = false;
                 completionBadge.classList.add('active');
                 chatInput.disabled = true;
@@ -903,7 +996,6 @@
             sendBtn.disabled = false;
         }
 
-        // Event listeners
         sendBtn.addEventListener('click', () => {
             handleUserMessage(chatInput.value);
         });
@@ -925,7 +1017,6 @@
         });
 
         startMeetingBtn.addEventListener('click', () => {
-            // Store brief in sessionStorage
             const briefData = {
                 name: conversationState.brief.name,
                 context: conversationState.brief.context,
@@ -938,7 +1029,6 @@
             };
             sessionStorage.setItem('meetingBrief', JSON.stringify(briefData));
 
-            // Redirect to meeting
             window.location.href = '/meeting';
         });
 
