@@ -616,9 +616,9 @@
                 updateQueueIndicator();
                 console.log('✅ Queue audio vide');
 
-                // Continuer le meeting automatiquement
+                // Continuer le meeting automatiquement (délai réduit)
                 if (isRunning && currentTurn < maxTurns) {
-                    setTimeout(() => nextTurn(), 1500);
+                    setTimeout(() => nextTurn(), 500);  // 500ms au lieu de 1500ms
                 }
                 return;
             }
@@ -655,8 +655,8 @@
                     currentAudio = null;
                     console.log(`✅ Audio terminé: ${agentId}`);
 
-                    // Jouer le prochain dans la queue
-                    setTimeout(() => playNextInQueue(), 500);
+                    // Jouer le prochain dans la queue (immédiat)
+                    setTimeout(() => playNextInQueue(), 100);  // 100ms au lieu de 500ms
                 };
 
                 currentAudio.onerror = (error) => {

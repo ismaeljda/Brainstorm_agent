@@ -118,34 +118,58 @@ Réponds au format JSON:
             import random
             return AgentScore(agent_id, random.randint(20, 60), "Scoring par défaut")
 
-    def select_next_speaker(self, allow_consecutive: bool = False) -> Tuple[str, str]:
+    def select_next_speaker_simple(self) -> Tuple[str, str]:
+        """
+        Sélection RAPIDE par rotation intelligente.
+        Économise 2-3 secondes par tour en évitant le scoring IA.
+        """
+        # Ordre intelligent: alterne stratégie/tech/créatif
+        agents_rotation = ['strategie', 'tech', 'creatif', 'facilitateur']
+
+        # Éviter que le même agent parle 2 fois de suite
+        available = [a for a in agents_rotation if a != self.last_speaker]
+
+        if not available:
+            available = agents_rotation
+
+        # Sélection basée sur le tour
+        idx = self.turn_count % len(available)
+        next_agent = available[idx]
+
+        print(f"⚡ Sélection rapide: {next_agent} (tour {self.turn_count})")
+        return next_agent, f"Rotation (tour {self.turn_count})"
+
+    def select_next_speaker(self, allow_consecutive: bool = False, fast_mode: bool = True) -> Tuple[str, str]:
         """
         Sélectionne l'agent le plus pertinent pour parler.
 
         Args:
             allow_consecutive: Permet au même agent de parler 2 fois de suite
+            fast_mode: Si True, utilise rotation simple (RAPIDE). Si False, scoring IA (LENT).
 
         Returns:
             (agent_id, reasoning)
         """
+        # MODE RAPIDE (défaut) : Rotation simple, pas d'appel IA
+        if fast_mode:
+            return self.select_next_speaker_simple()
+
+        # MODE INTELLIGENT (lent) : Scoring IA complet
         context = self._build_context_summary(last_n=5)
 
         # Scorer tous les agents
         scores: List[AgentScore] = []
         for agent_id in self.agents.keys():
-            # Ne pas permettre au même agent de reparler immédiatement (sauf si allow_consecutive)
             if not allow_consecutive and agent_id == self.last_speaker:
                 continue
 
             score = self._score_agent_relevance(agent_id, context)
             scores.append(score)
 
-        # Trier par score décroissant
         scores.sort(key=lambda s: s.score, reverse=True)
 
         if not scores:
-            # Fallback: facilitateur
-            return 'facilitateur', "Aucun agent disponible, facilitateur par défaut"
+            return 'facilitateur', "Fallback facilitateur"
 
         best = scores[0]
         print(f"🎯 Agent sélectionné: {best.agent_id} (score: {best.score:.1f}) - {best.reasoning}")
@@ -184,7 +208,13 @@ CONSIGNES DE CONVERSATION:
 - Complète, nuance, approuve ou challenge ce qui a été dit
 - 2-3 phrases maximum, concis et percutant
 - Adresse-toi aux autres agents par leur fonction si tu réagis à leurs propos
-- Garde en tête le contexte et l'objectif du meeting"""
+- Garde en tête le contexte et l'objectif du meeting
+
+IMPORTANT - FORMAT VOCAL:
+- N'utilise JAMAIS de préfixes comme "[Agent:]", "[Nom:]", etc.
+- N'utilise JAMAIS de balises ou crochets comme [Note:], [Indicateurs:], etc.
+- Parle de manière naturelle et fluide comme à l'oral
+- Pas de markdown, pas de formatage, juste du texte parlé naturel"""
 
         # Construire l'historique avec identification des speakers
         messages = [
@@ -213,17 +243,49 @@ CONSIGNES DE CONVERSATION:
 
         try:
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o-mini",  # Déjà le plus rapide
                 messages=messages,
-                temperature=0.8,  # Plus créatif pour des échanges naturels
-                max_tokens=150
+                temperature=0.8,
+                max_tokens=80  # Réduit à 80 pour des réponses plus rapides et concises
             )
 
-            return response.choices[0].message.content.strip()
+            raw_response = response.choices[0].message.content.strip()
+
+            # Nettoyer la réponse pour l'audio (retirer préfixes et balises)
+            cleaned_response = self._clean_response_for_speech(raw_response)
+
+            return cleaned_response
 
         except Exception as e:
             print(f"❌ Erreur génération réponse {agent_id}: {e}")
             return f"Je rencontre un problème technique, désolé."
+
+    def _clean_response_for_speech(self, text: str) -> str:
+        """
+        Nettoie la réponse pour la rendre adaptée à la synthèse vocale.
+        Retire les préfixes, balises et annotations.
+        """
+        import re
+
+        # Retirer les préfixes d'agent comme "[Stratège Business]:", "[Agent: ...]", etc.
+        text = re.sub(r'\[(?:Agent[:\s]*)?[\w\s]+\]\s*:?\s*', '', text, flags=re.IGNORECASE)
+
+        # Retirer les balises entre crochets comme [Indicateurs clés : ...]
+        text = re.sub(r'\[([^\]]+)\]', '', text)
+
+        # Retirer les annotations entre parenthèses si trop longues
+        text = re.sub(r'\([^)]{50,}\)', '', text)
+
+        # Nettoyer les espaces multiples
+        text = re.sub(r'\s+', ' ', text)
+
+        # Retirer les espaces avant la ponctuation
+        text = re.sub(r'\s+([.,!?;:])', r'\1', text)
+
+        # Retirer les astérisques utilisés pour le markdown
+        text = re.sub(r'\*+', '', text)
+
+        return text.strip()
 
     def orchestrate_turn(self) -> Dict:
         """

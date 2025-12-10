@@ -372,7 +372,7 @@ def add_user_message():
 def orchestrate_next_turn():
     """
     Orchestre le prochain tour de conversation.
-    Sélectionne l'agent le plus pertinent et génère sa réponse.
+    Mode RAPIDE activé par défaut pour minimiser la latence.
     """
     try:
         session_id = session.get('orchestrator_id')
@@ -381,7 +381,7 @@ def orchestrate_next_turn():
 
         orchestrator = get_orchestrator(session_id)
 
-        # Orchestrer le tour
+        # Orchestrer le tour (fast_mode=True par défaut)
         result = orchestrator.orchestrate_turn()
 
         return jsonify({
