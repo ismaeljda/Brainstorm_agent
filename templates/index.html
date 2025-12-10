@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainstorm AI — Créez votre session</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563EB;
+            --primary-hover: #1D4ED8;
+            --success: #10B981;
+            --danger: #EF4444;
+            --bg: #F9FAFB;
+            --surface: #FFFFFF;
+            --border: #E5E7EB;
+            --border-focus: #BFDBFE;
+            --text: #111827;
+            --text-secondary: #6B7280;
+            --text-muted: #9CA3AF;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Header */
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 48px 24px;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 32px;
+            align-items: start;
+        }
+
+        /* Left Column - Chat */
+        .chat-section {
+            max-width: 800px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .chat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            padding: 24px;
+            min-height: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.ai {
+            display: flex;
+            gap: 12px;
+        }
+
+        .message.user {
+            display: flex;
+            gap: 12px;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+
+        .message.ai .message-avatar {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .message-content {
+            background: var(--bg);
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            line-height: 1.6;
+            font-size: 15px;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .message.user .message-content {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .typing-indicator.active {
+            display: flex;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            animation: typing 1.4s ease-in-out infinite;
+        }
+
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-8px); opacity: 1; }
+        }
+
+        .chat-input-area {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg);
+            border-color: var(--text-muted);
+            color: var(--text);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--border-focus);
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .send-btn {
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background: var(--primary-hover);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Files */
+        .files-section {
+            margin-top: 16px;
+        }
+
+        .files-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .file-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        .file-icon-wrapper {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .file-remove {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .file-remove:hover {
+            background: var(--border);
+            color: var(--danger);
+        }
+
+        /* Right Column - Brief */
+        .brief-sidebar {
+            position: sticky;
+            top: 88px;
+        }
+
+        .brief-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .brief-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brief-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .brief-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .brief-field {
+            margin-bottom: 20px;
+        }
+
+        .brief-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .brief-value {
+            font-size: 14px;
+            color: var(--text);
+            line-height: 1.6;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            min-height: 44px;
+        }
+
+        .brief-value.empty {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .brief-value.updating {
+            animation: briefUpdate 0.4s ease;
+        }
+
+        @keyframes briefUpdate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.01); background: white; }
+            100% { transform: scale(1); }
+        }
+
+        .brief-files-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .brief-file-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .completion-badge {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: #ECFDF5;
+            border: 1px solid #A7F3D0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            color: #065F46;
+            font-size: 14px;
+        }
+
+        .completion-badge.active {
+            display: flex;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        .start-meeting-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .start-meeting-btn:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .start-meeting-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .brief-sidebar {
+                position: static;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 24px 16px;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+
+            .chat-input-container {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="bot" style="width: 20px; height: 20px;"></i>
+                </div>
+                <span>Brainstorm AI</span>
+            </div>
+            <div class="header-status">
+                <div class="status-dot"></div>
+                <span>Assistant prêt</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Left: Chat -->
+        <div class="chat-section">
+            <div class="page-header">
+                <h1 class="page-title">Préparez votre session de brainstorm</h1>
+                <p class="page-subtitle">Notre assistant virtuel va vous aider à créer le brief parfait pour votre réunion.</p>
+            </div>
+
+            <div class="chat-card">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message ai">
+                        <div class="message-avatar">
+                            <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                        </div>
+                        <div class="message-content">
+                            Bonjour ! Je suis votre assistant virtuel. Je vais vous aider à préparer votre session de brainstorm.<br><br>
+                            Pour commencer, quel est le nom de votre entreprise ou projet ?
+                        </div>
+                    </div>
+                </div>
+
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="message-avatar">
+                        <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                    </div>
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="chat-input-container">
+                        <button class="icon-btn" id="uploadBtn" title="Joindre des fichiers">
+                            <i data-lucide="paperclip" style="width: 18px; height: 18px;"></i>
+                        </button>
+                        <input
+                            type="file"
+                            class="file-input"
+                            id="fileInput"
+                            multiple
+                            accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.pptx,.ppt"
+                        >
+                        <input
+                            type="text"
+                            class="chat-input"
+                            id="chatInput"
+                            placeholder="Tapez votre réponse..."
+                            autocomplete="off"
+                        >
+                        <button class="send-btn" id="sendBtn">
+                            <span>Envoyer</span>
+                            <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+
+                    <div class="files-section" id="filesSection" style="display: none;">
+                        <div class="files-list" id="filesList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Brief -->
+        <div class="brief-sidebar">
+            <div class="brief-card">
+                <div class="brief-header">
+                    <div class="brief-icon">
+                        <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div class="brief-title">Brief de la session</div>
+                </div>
+
+                <div class="brief-field">
+                    <label class="brief-label">Nom du projet</label>
+                    <div class="brief-value empty" id="briefName">En attente...</div>
+                </div>
+
+                <div class="brief-field">
+                    <label class="brief-label">Contexte</label>
+                    <div class="brief-value empty" id="briefContext">En attente...</div>
+                </div>
+
+                <div class="brief-field">
+                    <label class="brief-label">Objectif</label>
+                    <div class="brief-value empty" id="briefObjective">En attente...</div>
+                </div>
+
+                <div class="brief-field">
+                    <label class="brief-label">Documents joints</label>
+                    <div class="brief-value empty" id="briefFilesDisplay">
+                        <div class="brief-files-list" id="briefFilesList">
+                            Aucun document
+                        </div>
+                    </div>
+                </div>
+
+                <div class="completion-badge" id="completionBadge">
+                    <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                    <span>Brief complet ! Prêt à lancer.</span>
+                </div>
+
+                <button class="start-meeting-btn" id="startMeetingBtn" disabled>
+                    <i data-lucide="video" style="width: 18px; height: 18px;"></i>
+                    <span>Lancer le meeting</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const startMeetingBtn = document.getElementById('startMeetingBtn');
+        const completionBadge = document.getElementById('completionBadge');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileInput = document.getElementById('fileInput');
+        const filesSection = document.getElementById('filesSection');
+        const filesList = document.getElementById('filesList');
+        const briefFilesList = document.getElementById('briefFilesList');
+        const briefFilesDisplay = document.getElementById('briefFilesDisplay');
+
+        const briefFields = {
+            name: document.getElementById('briefName'),
+            context: document.getElementById('briefContext'),
+            objective: document.getElementById('briefObjective')
+        };
+
+        let conversationState = {
+            step: 0,
+            brief: {
+                name: '',
+                context: '',
+                objective: '',
+                files: []
+            }
+        };
+
+        const questions = [
+            "Pour commencer, quel est le nom de votre entreprise ou projet ?",
+            "Parfait ! Maintenant, pouvez-vous me donner un peu de contexte ? Décrivez votre entreprise, son secteur d'activité, sa taille, ses produits/services...",
+            "Excellent ! Enfin, quel est l'objectif principal de cette session de brainstorm ? Que souhaitez-vous accomplir ?"
+        ];
+
+        function addMessage(content, isUser = false) {
+            const message = document.createElement('div');
+            message.className = `message ${isUser ? 'user' : 'ai'}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = isUser
+                ? '<i data-lucide="user" style="width: 18px; height: 18px;"></i>'
+                : '<i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>';
+
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = content;
+
+            message.appendChild(avatar);
+            message.appendChild(messageContent);
+            chatMessages.appendChild(message);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            lucide.createIcons();
+        }
+
+        function updateBrief(field, value) {
+            const element = briefFields[field];
+            element.textContent = value;
+            element.classList.remove('empty');
+            element.classList.add('updating');
+            setTimeout(() => element.classList.remove('updating'), 400);
+        }
+
+        function showTyping() {
+            typingIndicator.classList.add('active');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTyping() {
+            typingIndicator.classList.remove('active');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function getFileIcon(fileName) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            const iconMap = {
+                'pdf': 'file-text',
+                'doc': 'file-text',
+                'docx': 'file-text',
+                'txt': 'file-text',
+                'csv': 'table',
+                'xlsx': 'table',
+                'xls': 'table',
+                'pptx': 'presentation',
+                'ppt': 'presentation'
+            };
+            return iconMap[ext] || 'file';
+        }
+
+        function addFile(file) {
+            conversationState.brief.files.push(file);
+
+            // Add to files list
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div class="file-icon-wrapper">
+                    <i data-lucide="${getFileIcon(file.name)}" style="width: 18px; height: 18px;"></i>
+                </div>
+                <div class="file-info">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${formatFileSize(file.size)}</div>
+                </div>
+                <button class="file-remove" data-file-name="${file.name}">
+                    <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                </button>
+            `;
+
+            filesList.appendChild(fileItem);
+            filesSection.style.display = 'block';
+            lucide.createIcons();
+
+            // Update brief display
+            updateBriefFiles();
+
+            // Remove handler
+            fileItem.querySelector('.file-remove').addEventListener('click', () => {
+                removeFile(file.name);
+                fileItem.remove();
+                if (conversationState.brief.files.length === 0) {
+                    filesSection.style.display = 'none';
+                }
+                updateBriefFiles();
+            });
+        }
+
+        function removeFile(fileName) {
+            conversationState.brief.files = conversationState.brief.files.filter(f => f.name !== fileName);
+        }
+
+        function updateBriefFiles() {
+            if (conversationState.brief.files.length === 0) {
+                briefFilesList.innerHTML = 'Aucun document';
+                briefFilesDisplay.classList.add('empty');
+                return;
+            }
+
+            briefFilesDisplay.classList.remove('empty');
+            briefFilesList.innerHTML = conversationState.brief.files.map(file => `
+                <div class="brief-file-item">
+                    <i data-lucide="${getFileIcon(file.name)}" style="width: 14px; height: 14px;"></i>
+                    <span>${file.name}</span>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        async function handleUserMessage(message) {
+            if (!message.trim()) return;
+
+            addMessage(message, true);
+            chatInput.value = '';
+            sendBtn.disabled = true;
+
+            const fields = ['name', 'context', 'objective'];
+            if (conversationState.step < fields.length) {
+                conversationState.brief[fields[conversationState.step]] = message;
+                updateBrief(fields[conversationState.step], message);
+            }
+
+            conversationState.step++;
+
+            showTyping();
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            hideTyping();
+
+            if (conversationState.step < questions.length) {
+                addMessage(questions[conversationState.step]);
+            } else {
+                addMessage("Parfait ! Votre brief est complet. Vous pouvez ajouter des documents si nécessaire, puis lancer votre session de brainstorm.");
+                startMeetingBtn.disabled = false;
+                completionBadge.classList.add('active');
+                chatInput.disabled = true;
+                sendBtn.disabled = true;
+            }
+
+            sendBtn.disabled = false;
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', () => {
+            handleUserMessage(chatInput.value);
+        });
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !sendBtn.disabled) {
+                handleUserMessage(chatInput.value);
+            }
+        });
+
+        uploadBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            files.forEach(file => addFile(file));
+            fileInput.value = '';
+        });
+
+        startMeetingBtn.addEventListener('click', () => {
+            // Store brief in sessionStorage
+            const briefData = {
+                name: conversationState.brief.name,
+                context: conversationState.brief.context,
+                objective: conversationState.brief.objective,
+                files: conversationState.brief.files.map(f => ({
+                    name: f.name,
+                    size: f.size,
+                    type: f.type
+                }))
+            };
+            sessionStorage.setItem('meetingBrief', JSON.stringify(briefData));
+
+            // Redirect to meeting
+            window.location.href = '/meeting';
+        });
+
+        chatInput.focus();
+    </script>
+</body>
+</html>

@@ -61,21 +61,14 @@ def get_orchestrator(session_id: str, meeting_context: dict = None):
 
 @app.route('/')
 def index():
-    """Redirige vers la Meeting Room."""
-    from flask import redirect
-    return redirect('/meeting')
+    """Page d'accueil avec assistant IA pour créer le brief."""
+    return render_template('index.html')
 
 
 @app.route('/meeting')
 def meeting_room():
-    """Interface de meeting room avec orchestration intelligente."""
-    return render_template('meeting_intelligent.html')
-
-
-@app.route('/meeting/legacy')
-def meeting_room_legacy():
-    """Ancienne interface de meeting room (OpenAI Realtime)."""
-    return render_template('meeting_room_agents.html')
+    """Interface de meeting room - Style Teams/Zoom professionnel."""
+    return render_template('meeting.html')
 
 
 @app.route('/api/transcribe', methods=['POST'])

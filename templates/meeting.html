@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting en cours — Brainstorm AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563EB;
+            --primary-hover: #1D4ED8;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --bg: #F9FAFB;
+            --surface: #FFFFFF;
+            --border: #E5E7EB;
+            --text: #111827;
+            --text-secondary: #6B7280;
+            --text-muted: #9CA3AF;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+            --agent-facilitateur: #2563EB;
+            --agent-strategie: #EC4899;
+            --agent-tech: #10B981;
+            --agent-creatif: #F59E0B;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Meeting Container */
+        .meeting-container {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+        }
+
+        /* Header */
+        .meeting-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .meeting-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: #FEE2E2;
+            border: 1px solid #FECACA;
+            border-radius: 20px;
+            color: #991B1B;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .rec-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--danger);
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .meeting-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meeting-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .meeting-duration {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg);
+            border-color: var(--text-muted);
+            color: var(--text);
+        }
+
+        .icon-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* Main Content */
+        .meeting-main {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            overflow: hidden;
+        }
+
+        /* Participants Grid */
+        .participants-section {
+            background: var(--bg);
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 16px;
+            overflow: hidden;
+        }
+
+        .participant-card {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .participant-card.speaking {
+            border-color: var(--agent-color);
+            box-shadow: 0 0 0 3px rgba(var(--agent-color-rgb), 0.1), var(--shadow-lg);
+            transform: scale(1.02);
+        }
+
+        .participant-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+            position: relative;
+        }
+
+        .participant-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 3px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--agent-color);
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .participant-card.speaking .participant-avatar {
+            border-color: var(--agent-color);
+            box-shadow: 0 0 0 4px rgba(var(--agent-color-rgb), 0.1), var(--shadow-lg);
+            animation: avatarPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes avatarPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .participant-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+            text-align: center;
+        }
+
+        .participant-role {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .speaking-indicator {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 6px 12px;
+            background: var(--agent-color);
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .participant-card.speaking .speaking-indicator {
+            display: flex;
+        }
+
+        .wave-bars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .wave-bar {
+            width: 2px;
+            height: 10px;
+            background: white;
+            border-radius: 2px;
+            animation: wave 1s ease-in-out infinite;
+        }
+
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+
+        @keyframes wave {
+            0%, 100% { height: 6px; }
+            50% { height: 14px; }
+        }
+
+        /* Agent specific styles */
+        #participant-facilitateur {
+            --agent-color: var(--agent-facilitateur);
+            --agent-color-rgb: 37, 99, 235;
+        }
+
+        #participant-strategie {
+            --agent-color: var(--agent-strategie);
+            --agent-color-rgb: 236, 72, 153;
+        }
+
+        #participant-tech {
+            --agent-color: var(--agent-tech);
+            --agent-color-rgb: 16, 185, 129;
+        }
+
+        #participant-creatif {
+            --agent-color: var(--agent-creatif);
+            --agent-color-rgb: 245, 158, 11;
+        }
+
+        /* Transcript Panel */
+        .transcript-panel {
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .message-count {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .transcript-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .transcript-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .transcript-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .transcript-messages::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .transcript-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        .transcript-message {
+            margin-bottom: 16px;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .message-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .message-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        .message-content {
+            padding-left: 32px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .transcript-message.user .message-content {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+            color: var(--text-muted);
+            opacity: 0.3;
+        }
+
+        /* Controls */
+        .meeting-controls {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 -1px 3px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .control-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .control-btn:hover {
+            background: var(--bg);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .control-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .control-btn.danger {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: white;
+            width: 56px;
+            height: 56px;
+        }
+
+        .control-btn.danger:hover {
+            background: #DC2626;
+            transform: scale(1.05);
+        }
+
+        .control-label {
+            position: absolute;
+            bottom: -24px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        /* Brief Panel (Sidebar) */
+        .brief-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            transition: right 0.3s ease;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brief-sidebar.open {
+            right: 0;
+        }
+
+        .brief-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brief-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .brief-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .brief-field {
+            margin-bottom: 20px;
+        }
+
+        .brief-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .brief-value {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text);
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .meeting-main {
+                grid-template-columns: 1fr;
+            }
+
+            .transcript-panel {
+                display: none;
+            }
+
+            .participants-section {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .meeting-header {
+                padding: 12px 16px;
+            }
+
+            .participants-section {
+                padding: 12px;
+                gap: 12px;
+            }
+
+            .participant-avatar {
+                width: 80px;
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="meeting-container">
+        <!-- Header -->
+        <header class="meeting-header">
+            <div class="header-left">
+                <div class="meeting-status">
+                    <div class="rec-dot"></div>
+                    <span>En direct</span>
+                </div>
+                <div class="meeting-info">
+                    <div class="meeting-title" id="meetingTitle">Session de brainstorm</div>
+                    <div class="meeting-duration" id="duration">00:00</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="briefBtn" title="Afficher le brief">
+                    <i data-lucide="file-text" style="width: 18px; height: 18px;"></i>
+                </button>
+                <button class="icon-btn" id="settingsBtn" title="Paramètres">
+                    <i data-lucide="settings" style="width: 18px; height: 18px;"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="meeting-main">
+            <!-- Participants Grid -->
+            <div class="participants-section">
+                <div class="participant-card" id="participant-facilitateur">
+                    <div class="speaking-indicator">
+                        <div class="wave-bars">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                        <span>En train de parler</span>
+                    </div>
+                    <div class="participant-content">
+                        <div class="participant-avatar">
+                            <i data-lucide="target" style="width: 48px; height: 48px;"></i>
+                        </div>
+                        <div class="participant-name">Facilitateur</div>
+                        <div class="participant-role">Animateur de réunion</div>
+                    </div>
+                </div>
+
+                <div class="participant-card" id="participant-strategie">
+                    <div class="speaking-indicator">
+                        <div class="wave-bars">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                        <span>En train de parler</span>
+                    </div>
+                    <div class="participant-content">
+                        <div class="participant-avatar">
+                            <i data-lucide="trending-up" style="width: 48px; height: 48px;"></i>
+                        </div>
+                        <div class="participant-name">Stratège Business</div>
+                        <div class="participant-role">Consultant en stratégie</div>
+                    </div>
+                </div>
+
+                <div class="participant-card" id="participant-tech">
+                    <div class="speaking-indicator">
+                        <div class="wave-bars">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                        <span>En train de parler</span>
+                    </div>
+                    <div class="participant-content">
+                        <div class="participant-avatar">
+                            <i data-lucide="code" style="width: 48px; height: 48px;"></i>
+                        </div>
+                        <div class="participant-name">Tech Lead</div>
+                        <div class="participant-role">Architecte technique</div>
+                    </div>
+                </div>
+
+                <div class="participant-card" id="participant-creatif">
+                    <div class="speaking-indicator">
+                        <div class="wave-bars">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                        <span>En train de parler</span>
+                    </div>
+                    <div class="participant-content">
+                        <div class="participant-avatar">
+                            <i data-lucide="lightbulb" style="width: 48px; height: 48px;"></i>
+                        </div>
+                        <div class="participant-name">Creative Thinker</div>
+                        <div class="participant-role">Innovation & Design</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transcript Panel -->
+            <aside class="transcript-panel">
+                <div class="panel-header">
+                    <div class="panel-title">Transcript</div>
+                    <div class="message-count" id="messageCount">0 messages</div>
+                </div>
+                <div class="transcript-messages" id="transcriptMessages">
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i data-lucide="message-square" style="width: 100%; height: 100%;"></i>
+                        </div>
+                        <div>Le transcript apparaîtra ici</div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Controls -->
+        <div class="meeting-controls">
+            <button class="control-btn active" id="micBtn" title="Microphone">
+                <i data-lucide="mic" style="width: 20px; height: 20px;"></i>
+                <span class="control-label">Micro</span>
+            </button>
+            <button class="control-btn danger" id="leaveBtn" title="Quitter">
+                <i data-lucide="phone-off" style="width: 22px; height: 22px;"></i>
+                <span class="control-label">Quitter</span>
+            </button>
+            <button class="control-btn" id="shareBtn" title="Partager">
+                <i data-lucide="share-2" style="width: 20px; height: 20px;"></i>
+                <span class="control-label">Partager</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Brief Sidebar -->
+    <div class="brief-sidebar" id="briefSidebar">
+        <div class="brief-header">
+            <div class="brief-title">
+                <i data-lucide="file-text" style="width: 18px; height: 18px;"></i>
+                <span>Brief de la session</span>
+            </div>
+            <button class="close-btn" id="closeBriefBtn">
+                <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+            </button>
+        </div>
+        <div class="brief-content">
+            <div class="brief-field">
+                <label class="brief-label">Nom du projet</label>
+                <div class="brief-value" id="briefName">-</div>
+            </div>
+            <div class="brief-field">
+                <label class="brief-label">Contexte</label>
+                <div class="brief-value" id="briefContext">-</div>
+            </div>
+            <div class="brief-field">
+                <label class="brief-label">Objectif</label>
+                <div class="brief-value" id="briefObjective">-</div>
+            </div>
+            <div class="brief-field">
+                <label class="brief-label">Documents joints</label>
+                <div class="brief-value" id="briefFiles">Aucun document</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Load brief from sessionStorage
+        const brief = JSON.parse(sessionStorage.getItem('meetingBrief') || '{"name":"","context":"","objective":"","files":[]}');
+
+        document.getElementById('briefName').textContent = brief.name || '-';
+        document.getElementById('briefContext').textContent = brief.context || '-';
+        document.getElementById('briefObjective').textContent = brief.objective || '-';
+        document.getElementById('meetingTitle').textContent = brief.name || 'Session de brainstorm';
+
+        if (brief.files && brief.files.length > 0) {
+            document.getElementById('briefFiles').innerHTML = brief.files.map(f =>
+                `<div style="margin-bottom: 4px; font-size: 13px;">• ${f.name}</div>`
+            ).join('');
+        }
+
+        // Duration timer
+        let startTime = Date.now();
+        setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('duration').textContent = `${minutes}:${seconds}`;
+        }, 1000);
+
+        // Brief sidebar toggle
+        const briefSidebar = document.getElementById('briefSidebar');
+        const briefBtn = document.getElementById('briefBtn');
+        const closeBriefBtn = document.getElementById('closeBriefBtn');
+
+        briefBtn.addEventListener('click', () => {
+            briefSidebar.classList.add('open');
+        });
+
+        closeBriefBtn.addEventListener('click', () => {
+            briefSidebar.classList.remove('open');
+        });
+
+        // Controls
+        const micBtn = document.getElementById('micBtn');
+        const leaveBtn = document.getElementById('leaveBtn');
+
+        micBtn.addEventListener('click', () => {
+            micBtn.classList.toggle('active');
+        });
+
+        leaveBtn.addEventListener('click', () => {
+            if (confirm('Êtes-vous sûr de vouloir quitter le meeting ?')) {
+                window.location.href = '/';
+            }
+        });
+
+        // Agents configuration
+        const AGENTS = {
+            facilitateur: {
+                id: 'facilitateur',
+                name: 'Facilitateur',
+                icon: 'target',
+                voice: 'facilitateur',
+                color: '#2563EB'
+            },
+            strategie: {
+                id: 'strategie',
+                name: 'Stratège Business',
+                icon: 'trending-up',
+                voice: 'strategie',
+                color: '#EC4899'
+            },
+            tech: {
+                id: 'tech',
+                name: 'Tech Lead',
+                icon: 'code',
+                voice: 'tech',
+                color: '#10B981'
+            },
+            creatif: {
+                id: 'creatif',
+                name: 'Creative Thinker',
+                icon: 'lightbulb',
+                voice: 'creatif',
+                color: '#F59E0B'
+            }
+        };
+
+        let ws = null;
+        let audioContext = null;
+        let mediaStream = null;
+        let conversationTurns = 0;
+        let maxTurns = 8;
+        let isAutoConversation = false;
+        let messageCount = 0;
+
+        const transcriptMessages = document.getElementById('transcriptMessages');
+        const messageCountEl = document.getElementById('messageCount');
+
+        function highlightParticipant(agentId) {
+            document.querySelectorAll('.participant-card').forEach(card => {
+                card.classList.remove('speaking');
+            });
+
+            if (agentId && agentId !== 'user') {
+                const card = document.getElementById(`participant-${agentId}`);
+                if (card) {
+                    card.classList.add('speaking');
+                }
+            }
+        }
+
+        function addMessage(agentId, content) {
+            // Remove empty state
+            const emptyState = transcriptMessages.querySelector('.empty-state');
+            if (emptyState) {
+                transcriptMessages.innerHTML = '';
+            }
+
+            const agent = agentId === 'user' ? {
+                name: 'Vous',
+                icon: 'user',
+                color: '#2563EB'
+            } : AGENTS[agentId];
+
+            const now = new Date();
+            const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+            const message = document.createElement('div');
+            message.className = `transcript-message ${agentId}`;
+            message.innerHTML = `
+                <div class="message-header">
+                    <div class="message-avatar" style="background: ${agent.color}; color: white;">
+                        <i data-lucide="${agent.icon}" style="width: 14px; height: 14px;"></i>
+                    </div>
+                    <div class="message-name" style="color: ${agent.color}">${agent.name}</div>
+                    <div class="message-time">${time}</div>
+                </div>
+                <div class="message-content">${content}</div>
+            `;
+            transcriptMessages.appendChild(message);
+            transcriptMessages.scrollTop = transcriptMessages.scrollHeight;
+
+            lucide.createIcons();
+
+            messageCount++;
+            messageCountEl.textContent = `${messageCount} message${messageCount > 1 ? 's' : ''}`;
+        }
+
+        function triggerNextAgent() {
+            if (!ws || !isAutoConversation) return;
+
+            conversationTurns++;
+            console.log(`🔄 Tour ${conversationTurns}/${maxTurns}`);
+
+            if (conversationTurns >= maxTurns) {
+                console.log('✅ Conversation terminée');
+                isAutoConversation = false;
+                return;
+            }
+
+            setTimeout(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'conversation.item.create',
+                        item: {
+                            type: 'message',
+                            role: 'user',
+                            content: [{
+                                type: 'input_text',
+                                text: 'Continue la discussion. Quel agent doit parler maintenant?'
+                            }]
+                        }
+                    }));
+
+                    ws.send(JSON.stringify({ type: 'response.create' }));
+                }
+            }, 2000);
+        }
+
+        async function startMeeting() {
+            try {
+                // Get token
+                const tokenRes = await fetch('http://localhost:5000/api/token');
+                if (!tokenRes.ok) throw new Error('Failed to get token');
+                const { token } = await tokenRes.json();
+
+                // Get agents config
+                const configRes = await fetch('http://localhost:5000/api/agents_config');
+                if (!configRes.ok) throw new Error('Failed to load agents config');
+                const config = await configRes.json();
+                const orchestratorPrompt = config.orchestrator_prompt;
+
+                console.log('✅ Config loaded');
+
+                // Connect WebSocket
+                const url = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17';
+                ws = new WebSocket(url, ['realtime', `openai-insecure-api-key.${token}`]);
+
+                ws.onopen = async () => {
+                    console.log('✅ Connected');
+
+                    ws.send(JSON.stringify({
+                        type: 'session.update',
+                        session: {
+                            modalities: ['text'],
+                            instructions: orchestratorPrompt,
+                            voice: 'alloy',
+                            turn_detection: {
+                                type: 'server_vad',
+                                threshold: 0.5,
+                                silence_duration_ms: 700
+                            },
+                            input_audio_transcription: { model: 'whisper-1' }
+                        }
+                    }));
+
+                    await startAudioStreaming();
+                };
+
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+
+                    switch (data.type) {
+                        case 'conversation.item.input_audio_transcription.completed':
+                            addMessage('user', data.transcript);
+                            isAutoConversation = true;
+                            conversationTurns = 0;
+                            break;
+
+                        case 'response.text.done':
+                        case 'response.done':
+                            if (data.response && data.response.output && data.response.output.length > 0) {
+                                const output = data.response.output[0];
+                                if (output.content && output.content.length > 0) {
+                                    const text = output.content[0].text;
+
+                                    const match = text.match(/\[AGENT:\s*(\w+)\](.*)/is);
+                                    if (match) {
+                                        const agentName = match[1].toLowerCase();
+                                        const message = match[2].trim();
+
+                                        let agentId = 'facilitateur';
+                                        for (const [id, agent] of Object.entries(AGENTS)) {
+                                            if (agent.name.toLowerCase().includes(agentName) || id === agentName) {
+                                                agentId = id;
+                                                break;
+                                            }
+                                        }
+
+                                        highlightParticipant(agentId);
+                                        addMessage(agentId, message);
+
+                                        if (agentId === 'facilitateur') {
+                                            highlightParticipant(null);
+                                            if (isAutoConversation) {
+                                                setTimeout(() => triggerNextAgent(), 500);
+                                            }
+                                        } else {
+                                            generateAndPlaySpeech(agentId, message);
+                                        }
+                                    } else {
+                                        highlightParticipant('facilitateur');
+                                        addMessage('facilitateur', text);
+                                        highlightParticipant(null);
+
+                                        if (isAutoConversation) {
+                                            setTimeout(() => triggerNextAgent(), 500);
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+
+            } catch (error) {
+                console.error('Connection error:', error);
+                alert('Erreur: ' + error.message);
+            }
+        }
+
+        async function startAudioStreaming() {
+            audioContext = new AudioContext({ sampleRate: 24000 });
+            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            const source = audioContext.createMediaStreamSource(mediaStream);
+            const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+            processor.onaudioprocess = (e) => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    const inputData = e.inputBuffer.getChannelData(0);
+
+                    const targetLength = Math.floor(inputData.length * 24000 / audioContext.sampleRate);
+                    const resampled = new Float32Array(targetLength);
+                    for (let i = 0; i < targetLength; i++) {
+                        const srcIndex = Math.floor(i * audioContext.sampleRate / 24000);
+                        resampled[i] = inputData[srcIndex];
+                    }
+
+                    const int16 = new Int16Array(resampled.length);
+                    for (let i = 0; i < resampled.length; i++) {
+                        const s = Math.max(-1, Math.min(1, resampled[i]));
+                        int16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+                    }
+
+                    const bytes = new Uint8Array(int16.buffer);
+                    let binary = '';
+                    for (let i = 0; i < bytes.length; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+
+                    ws.send(JSON.stringify({
+                        type: 'input_audio_buffer.append',
+                        audio: btoa(binary)
+                    }));
+                }
+            };
+
+            source.connect(processor);
+            processor.connect(audioContext.destination);
+        }
+
+        async function generateAndPlaySpeech(agentId, text) {
+            try {
+                const response = await fetch('http://localhost:5000/api/speak', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text, agent: agentId })
+                });
+
+                if (!response.ok) throw new Error('Failed to generate speech');
+
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+
+                const audio = new Audio(audioUrl);
+                audio.play();
+
+                audio.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    highlightParticipant(null);
+
+                    if (isAutoConversation) {
+                        setTimeout(() => triggerNextAgent(), 1000);
+                    }
+                };
+
+            } catch (error) {
+                console.error('Error generating speech:', error);
+                highlightParticipant(null);
+            }
+        }
+
+        // Start meeting on load
+        startMeeting();
+    </script>
+</body>
+</html>
