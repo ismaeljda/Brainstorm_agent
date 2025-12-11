@@ -1,0 +1,258 @@
+.setup-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.setup-card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 1100px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.setup-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.setup-header h1 {
+  font-size: 2.5em;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+
+.setup-header p {
+  color: #666;
+  font-size: 1.1em;
+}
+
+.setup-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.setup-section {
+  background: #f8f9fa;
+  padding: 25px;
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+}
+
+.setup-section h2 {
+  color: #495057;
+  margin-bottom: 15px;
+  font-size: 1.3em;
+}
+
+.section-description {
+  color: #6c757d;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.context-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 15px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.3s;
+}
+
+.context-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.upload-zone {
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 15px;
+}
+
+.upload-zone:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.upload-zone.dragover {
+  border-color: #667eea;
+  background: #f0f2ff;
+  transform: scale(1.02);
+}
+
+.upload-icon {
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 5px;
+}
+
+.file-list {
+  margin-top: 15px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.file-item.ready {
+  border-left: 3px solid #28a745;
+}
+
+.file-item.uploading {
+  border-left: 3px solid #ffc107;
+}
+
+.file-item.failed {
+  border-left: 3px solid #dc3545;
+}
+
+.file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 10px;
+}
+
+.file-status {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.agents-section {
+  grid-column: 1 / -1;
+}
+
+.agents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.agent-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 3px solid transparent;
+  text-align: center;
+}
+
+.agent-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.agent-card.selected {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+}
+
+.agent-icon {
+  font-size: 3em;
+  margin-bottom: 10px;
+}
+
+.agent-name {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 5px;
+}
+
+.agent-description {
+  font-size: 12px;
+  color: #6c757d;
+  line-height: 1.4;
+}
+
+.start-button {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.2em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.start-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.start-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #ccc;
+  box-shadow: none;
+}
+
+/* Scrollbar personnalisée */
+.file-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.file-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.file-list::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 4px;
+}
+
+.file-list::-webkit-scrollbar-thumb:hover {
+  background: #764ba2;
+}

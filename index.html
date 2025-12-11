@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Consultant Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Étape 1: Configuration */
+        .setup-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .setup-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 1000px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .setup-header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .setup-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .setup-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .setup-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+        }
+
+        .setup-section h2 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setup-section h2::before {
+            content: '📋';
+            font-size: 1.2em;
+        }
+
+        .context-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .context-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .upload-zone {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+
+        .upload-zone:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .upload-zone.dragover {
+            border-color: #667eea;
+            background: #f0f2ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .file-list {
+            margin-top: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .file-item.ready {
+            border-left: 3px solid #28a745;
+        }
+
+        .file-item.uploading {
+            border-left: 3px solid #ffc107;
+        }
+
+        .file-item.failed {
+            border-left: 3px solid #dc3545;
+        }
+
+        .agents-section {
+            grid-column: 1 / -1;
+        }
+
+        .agents-section h2::before {
+            content: '🤖';
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .agent-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+            text-align: center;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .agent-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+        }
+
+        .agent-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .agent-name {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .agent-description {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .start-button {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .start-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .start-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Étape 2: Appel */
+        .call-screen {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .call-header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .call-info h2 {
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .call-info p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .end-call-button {
+            padding: 12px 24px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .end-call-button:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+
+        .call-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-wrapper {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 15px;
+            display: block;
+        }
+
+        .call-status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Scrollbar personnalisée */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Écran de configuration -->
+        <div class="setup-screen" id="setupScreen">
+            <div class="setup-card">
+                <div class="setup-header">
+                    <h1>AI Consultant Platform</h1>
+                    <p>Configurez votre session et choisissez votre agent IA</p>
+                </div>
+
+                <div class="setup-content">
+                    <div class="setup-section">
+                        <h2>Contexte Entreprise</h2>
+                        <textarea
+                            id="companyContext"
+                            class="context-textarea"
+                            placeholder="Décrivez votre entreprise, son secteur d'activité, ses objectifs, ses défis actuels...&#10;&#10;Ex: Nous sommes une startup fintech spécialisée dans les paiements B2B. Nous cherchons à optimiser notre stratégie de croissance et à améliorer notre taux de conversion..."
+                        ></textarea>
+                    </div>
+
+                    <div class="setup-section">
+                        <h2>Documents</h2>
+                        <p style="color: #6c757d; font-size: 14px; margin-bottom: 10px;">
+                            Importez vos documents (stratégie, données marché, rapports...)
+                        </p>
+                        <div class="upload-zone" id="uploadZone">
+                            <div class="upload-icon">📁</div>
+                            <div><strong>Cliquez ou glissez vos fichiers ici</strong></div>
+                            <div style="font-size: 12px; color: #6c757d; margin-top: 5px;">
+                                PDF, DOCX, TXT, MD, CSV, JSON, LOG
+                            </div>
+                        </div>
+                        <input type="file" id="fileInput" multiple accept=".pdf,.txt,.md,.docx,.csv,.json,.log">
+                        <div class="file-list" id="fileList"></div>
+                    </div>
+
+                    <div class="setup-section agents-section">
+                        <h2>Choisissez votre Agent</h2>
+                        <div class="agents-grid" id="agentsGrid">
+                            <!-- Les agents seront ajoutés ici -->
+                        </div>
+                    </div>
+                </div>
+
+                <button class="start-button" id="startButton" disabled>
+                    Lancer la consultation
+                </button>
+            </div>
+        </div>
+
+        <!-- Écran d'appel -->
+        <div class="call-screen" id="callScreen">
+            <div class="call-header">
+                <div class="call-info">
+                    <h2 id="currentAgentName">Agent</h2>
+                    <p id="currentAgentDescription">En ligne</p>
+                </div>
+                <button class="end-call-button" id="endCallButton">
+                    Terminer l'appel
+                </button>
+            </div>
+
+            <div class="call-container">
+                <div class="video-wrapper">
+                    <video id="persona-video" autoplay playsinline></video>
+                    <div class="call-status" id="callStatus">Connexion en cours...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@anam-ai/js-sdk@latest";
+
+        // Replace with your actual API key
+        const API_KEY = "YmFkOTliNzQtNDc3Mi00YmNkLTlhODctZDBiN2YwZWIzMDNmOnlPVzlTVTJ1bHpJYVZlS0pSN0ZjWWxKUGlpR24rVHVvT1ZKb3RoZ0ZFY3c9";
+
+        let uploadedDocuments = [];
+        let currentFolderId = localStorage.getItem('folderId') || '';
+
+        const videoElement = document.getElementById("persona-video");
+        const statusElement = document.getElementById("status");
+        const fileListElement = document.getElementById("fileList");
+
+        // Upload functionality
+        const uploadBox = document.getElementById("uploadBox");
+        const fileInput = document.getElementById("fileInput");
+
+        uploadBox.addEventListener("click", () => fileInput.click());
+        fileInput.addEventListener("change", handleFiles);
+
+        // Drag and drop
+        uploadBox.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            uploadBox.classList.add("dragover");
+        });
+        uploadBox.addEventListener("dragleave", () => {
+            uploadBox.classList.remove("dragover");
+        });
+        uploadBox.addEventListener("drop", (e) => {
+            e.preventDefault();
+            uploadBox.classList.remove("dragover");
+            handleFiles({ target: { files: e.dataTransfer.files } });
+        });
+
+        async function handleFiles(event) {
+            const files = Array.from(event.target.files);
+
+            for (const file of files) {
+                await uploadDocument(file);
+            }
+        }
+
+        async function uploadDocument(file) {
+            const fileId = Date.now() + "-" + file.name;
+            addFileToList(fileId, file.name, "uploading");
+
+            try {
+                // Upload to local RAG server
+                const formData = new FormData();
+                formData.append('file', file);
+
+                updateFileStatus(fileId, "uploading", "Uploading...");
+                const response = await fetch("http://localhost:5000/upload", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "Upload failed");
+                }
+
+                const data = await response.json();
+
+                // Update UI with success
+                updateFileStatus(fileId, "ready", `✓ Ready (${data.chunks} chunks)`);
+                uploadedDocuments.push(data.documentId);
+
+            } catch (error) {
+                console.error("Upload failed:", error);
+                updateFileStatus(fileId, "failed", error.message);
+            }
+        }
+
+        function addFileToList(id, filename, status) {
+            const fileItem = document.createElement("div");
+            fileItem.className = `file-item ${status}`;
+            fileItem.id = `file-${id}`;
+            fileItem.innerHTML = `
+                <span>${filename}</span>
+                <span class="file-status">Uploading...</span>
+            `;
+            fileListElement.prepend(fileItem);
+        }
+
+        function updateFileStatus(id, status, message) {
+            const fileItem = document.getElementById(`file-${id}`);
+            if (fileItem) {
+                fileItem.className = `file-item ${status}`;
+                fileItem.querySelector(".file-status").textContent = message;
+            }
+        }
+
+        window.createFolder = async function() {
+            alert("Using local RAG - no folder needed!");
+        };
+
+        // Load existing documents on startup
+        async function loadDocuments() {
+            try {
+                const response = await fetch("http://localhost:5000/documents");
+                if (response.ok) {
+                    const docs = await response.json();
+                    docs.forEach(doc => {
+                        addFileToList(doc.id, doc.filename, "ready");
+                        const fileItem = document.getElementById(`file-${doc.id}`);
+                        if (fileItem) {
+                            fileItem.querySelector(".file-status").textContent = `✓ Ready (${doc.chunks_count} chunks)`;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.log("Could not load existing documents:", error);
+            }
+        }
+
+        async function createSessionToken() {
+            const response = await fetch("https://api.anam.ai/v1/auth/session-token", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${API_KEY}`,
+                },
+                body: JSON.stringify({
+                    personaConfig: {
+                        name: "Cara",
+                        avatarId: "30fa96d0-26c4-4e55-94a0-517025942e18",
+                        voiceId: "6bfbe25a-979d-40f3-a92b-5394170af54b",
+                        llmId: "0934d97d-0c3a-4f33-91b0-5e136a0ef466",
+                        systemPrompt: `# Personality
+Tu es "Alexandre", consultant stratégique senior.
+Tu incarnes un expert pragmatique, structuré et orienté résultat avec 10+ ans d'expérience en stratégie pour PME et cabinets de conseil.
+Traits clés : analytique, direct, bienveillant, orienté livreables actionnables.
+Rôle : challenger les hypothèses, proposer une stratégie claire et priorisée, et préparer des livrables prêts à être présentés à un client.
+
+# Environment
+Contexte d'échange : dialogue vocal 1-to-1 avec un consultant indépendant ou fondateur qui prépare une mission, un pitch ou une recommandation client.
+IMPORTANT : Tu as accès à l'outil search_documents qui te permet de chercher dans les documents uploadés par l'utilisateur. Utilise-le SYSTÉMATIQUEMENT quand l'utilisateur mentionne "mes documents", "dans mes fichiers", "d'après ce que j'ai uploadé" ou demande des informations spécifiques qui pourraient être dans ses documents.
+L'utilisateur peut être pressé et veut des réponses exploitables rapidement.
+
+# Tone
+Parle de façon claire, concise et professionnelle — adaptée à la voix (TTS).
+Évite les symboles, abréviations et formats ambigus (écris « dix pour cent » plutôt que « 10% »).
+Incorpore de courtes marques de parole naturelles (« D'accord… », « Très bien », « En effet… ») et pauses (...) pour l'intonation vocale.
+Vérifie la compréhension avec une question courte à la fin (« Est-ce que cela vous paraît utile ? »).
+
+# Goal
+Objectif principal : fournir une recommandation stratégique priorisée, directement exécutable, en 2–4 phrases (version courte) + option « DÉTAIL » (si demandé).
+Processus à suivre :
+1. Si l'utilisateur mentionne des documents uploadés ou demande des infos de ses fichiers → TOUJOURS appeler search_documents en premier.
+2. Clarifier rapidement l'intention utilisateur si ambigüe (poser 1 question max).
+3. Évaluer la situation en utilisant les résultats de la recherche documentaire si disponibles.
+4. Proposer une recommandation principale, 1 alternative et 2 actions immédiates (next steps).
+5. Indiquer les risques clés et une estimation d'effort (faible / moyen / élevé) pour la recommandation principale.
+Succès = l'utilisateur quitte la conversation avec une action claire et priorisée.
+
+# Decision logic (condensé)
+- DÉCLENCHEUR RAG : Si l'utilisateur dit "mes documents", "mon fichier", "ce que j'ai uploadé", "dans mes docs" → appelle search_documents IMMÉDIATEMENT.
+- Si la requête demande un chiffre, un benchmark ou une donnée factuelle → utilise search_documents et cite la source dans la réponse vocale (« D'après [source] : … »).
+- Si la recherche ne retourne rien de fiable → dire explicitement « hypothèse non vérifiée » et proposer comment vérifier (outil / doc / métrique).
+- Priorise les actions à fort impact / faible effort (Quick Wins) en tête.
+- Toujours fournir une solution praticable dans le timing utilisateur (livrable minimal en < 24h).
+
+# Response format (obligatoire)
+Quand tu réponds, respecte strictement ce format vocal en 2–4 phrases :
+1. Recommandation principale : Phrase courte, actionnable.
+2. Alternative : Une autre option viable (1 phrase).
+3. Risques & next steps : Deux points : risque principal et 1 action immédiate à lancer.
+Exemple vocal : « Recommandation principale : lancer un MVP ciblé sur les fonctionnalités A et B... Alternative : prioriser un pilote client avec un partenaire existant... Risques & next steps : risque—coût d'acquisition élevé ; next step—préparer brief client et test en 2 semaines. »
+
+# Guardrails
+- Ne fabrique jamais de chiffres : si tu n'as pas vérifié un chiffre, dis « hypothèse non vérifiée ».
+- Pas de spéculation marketing vagues (évite « disruptif », « révolutionnaire » sans justification).
+- Limite la réponse à la trame demandée ; si l'utilisateur veut plus, propose l'option « DÉTAIL ».
+- Ne révèle jamais de données sensibles ni de secrets clients.
+
+# Meta-instructions pour la voix et TTS
+- Rends le texte lisible à haute voix : évite parenthèses et listes longues ; utilise des phrases complètes et des pauses.
+- Énonce les nombres en toutes lettres (ex. cinquante euros par mois).
+- Si tu cites une source, dis le nom succinctement : d'après le document X.
+
+# Monitoring & fallback
+- Si l'utilisateur semble perdu après la recommandation, offre Voulez-vous un exemple concret ou un plan en 3 étapes.
+- En cas d'incertitude élevée (plus de 50% d'hypothèses), proposer d'escalader à un expert humain.
+
+# Performance constraints
+- Réponse courte : priorité 2 à 4 phrases (max 40-50 mots).
+- Si l'argumentation requiert plus, utiliser l'option DÉTAIL qui donne un agrandissement structuré.`,
+                        tools: [
+                            {
+                                type: "client",
+                                name: "search_documents",
+                                description: "UTILISE CET OUTIL IMMÉDIATEMENT dès que l'utilisateur mentionne 'mes documents', 'mon fichier', 'ce que j'ai uploadé' ou demande des informations qui pourraient être dans ses documents uploadés. Recherche sémantique dans la base documentaire.",
+                                parameters: {
+                                    type: "object",
+                                    properties: {
+                                        query: {
+                                            type: "string",
+                                            description: "La requête de recherche pour trouver des informations pertinentes dans les documents"
+                                        }
+                                    },
+                                    required: ["query"]
+                                },
+                                handler: async (params) => {
+                                    console.log("🔍 RAG Tool called with query:", params.query);
+                                    try {
+                                        const response = await fetch("http://localhost:5000/search", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({ query: params.query, top_k: 3 })
+                                        });
+
+                                        if (!response.ok) {
+                                            console.error("❌ RAG search failed");
+                                            return { error: "Search failed" };
+                                        }
+
+                                        const data = await response.json();
+                                        console.log("✅ RAG results:", data.results.length, "chunks found");
+                                        console.log("📄 Results:", data.results);
+
+                                        return {
+                                            results: data.results.map(r => ({
+                                                text: r.text,
+                                                source: r.filename,
+                                                relevance: r.score
+                                            }))
+                                        };
+                                    } catch (error) {
+                                        console.error("❌ RAG error:", error);
+                                        return { error: error.message };
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                }),
+            });
+
+            const data = await response.json();
+            return data.sessionToken;
+        }
+
+        async function startChat() {
+            try {
+                statusElement.textContent = "Creating session...";
+
+                const sessionToken = await createSessionToken();
+                statusElement.textContent = "Connecting...";
+
+                const anamClient = createClient(sessionToken);
+                await anamClient.streamToVideoElement("persona-video");
+
+                statusElement.textContent = "Connected! Start speaking to Alexandre";
+
+                // Test RAG on startup
+                console.log("🧪 Testing RAG search...");
+                const testResponse = await fetch("http://localhost:5000/search", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query: "hackathon eleven labs", top_k: 3 })
+                });
+                const testData = await testResponse.json();
+                console.log("🧪 RAG Test Results:", testData);
+
+            } catch (error) {
+                console.error("Failed to start chat:", error);
+                statusElement.textContent = "Failed to connect. Check your API key.";
+            }
+        }
+
+        // Auto-start when page loads
+        loadDocuments();
+        startChat();
+    </script>
+</body>
+</html>
