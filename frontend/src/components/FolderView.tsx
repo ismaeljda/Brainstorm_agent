@@ -21,14 +21,14 @@ const FolderView: React.FC<FolderViewProps> = ({ folder, onClose, onNewConsultat
 
   const getDeliverableIcon = (type: WorkDeliverable['type']) => {
     switch (type) {
-      case 'strategy':
-        return '📋';
-      case 'marketing':
-        return '📊';
-      case 'financial':
-        return '💰';
-      case 'innovation':
-        return '💡';
+      case 'lesson':
+        return '📚';
+      case 'exercise':
+        return '✏️';
+      case 'summary':
+        return '📝';
+      case 'quiz':
+        return '❓';
       default:
         return '📄';
     }
@@ -36,14 +36,14 @@ const FolderView: React.FC<FolderViewProps> = ({ folder, onClose, onNewConsultat
 
   const getDeliverableLabel = (type: WorkDeliverable['type']) => {
     switch (type) {
-      case 'strategy':
-        return 'Stratégie';
-      case 'marketing':
-        return 'Marketing';
-      case 'financial':
-        return 'Finance';
-      case 'innovation':
-        return 'Innovation';
+      case 'lesson':
+        return 'Leçon';
+      case 'exercise':
+        return 'Exercice';
+      case 'summary':
+        return 'Résumé';
+      case 'quiz':
+        return 'Quiz';
       default:
         return 'Document';
     }
@@ -54,7 +54,7 @@ const FolderView: React.FC<FolderViewProps> = ({ folder, onClose, onNewConsultat
       <div className="folder-container">
         <div className="folder-header">
           <div className="folder-header-content">
-            <h1 className="folder-title">Votre Dossier Business Plan</h1>
+            <h1 className="folder-title">Votre Espace d'Apprentissage</h1>
             <p className="folder-subtitle">{folder.projectName}</p>
           </div>
           <button className="folder-close-button" onClick={onClose}>
@@ -70,15 +70,15 @@ const FolderView: React.FC<FolderViewProps> = ({ folder, onClose, onNewConsultat
             </div>
             <div className="summary-grid">
               <div className="summary-card">
-                <div className="summary-label">Consultations</div>
+                <div className="summary-label">Leçons</div>
                 <div className="summary-value">{folder.consultations.length}</div>
               </div>
               <div className="summary-card">
-                <div className="summary-label">Livrables</div>
+                <div className="summary-label">Exercices & Résumés</div>
                 <div className="summary-value">{folder.deliverables.length}</div>
               </div>
               <div className="summary-card">
-                <div className="summary-label">Documents</div>
+                <div className="summary-label">Cours uploadés</div>
                 <div className="summary-value">{folder.documents.length}</div>
               </div>
             </div>
@@ -88,7 +88,7 @@ const FolderView: React.FC<FolderViewProps> = ({ folder, onClose, onNewConsultat
           {folder.deliverables.length > 0 && (
             <div className="folder-section">
               <div className="section-header">
-                <span className="section-number">Livrables Générés</span>
+                <span className="section-number">Contenu Pédagogique</span>
               </div>
               <div className="deliverables-list">
                 {folder.deliverables.map(deliverable => (
@@ -124,7 +124,7 @@ const FolderView: React.FC<FolderViewProps> = ({ folder, onClose, onNewConsultat
           {folder.consultations.length > 0 && (
             <div className="folder-section">
               <div className="section-header">
-                <span className="section-number">Historique des Consultations</span>
+                <span className="section-number">Historique des Leçons</span>
               </div>
               <div className="consultations-timeline">
                 {folder.consultations.map((consultation, idx) => (
@@ -163,10 +163,10 @@ const FolderView: React.FC<FolderViewProps> = ({ folder, onClose, onNewConsultat
 
         <div className="folder-actions">
           <button className="action-button action-button-secondary" onClick={onNewConsultation}>
-            Nouvelle Consultation
+            Nouvelle Leçon
           </button>
           <button className="action-button action-button-primary" onClick={handleDownload}>
-            Télécharger le Dossier Complet
+            Télécharger Mes Notes
           </button>
         </div>
       </div>

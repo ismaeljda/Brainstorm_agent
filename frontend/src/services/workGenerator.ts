@@ -10,64 +10,20 @@ interface GenerateWorkParams {
 }
 
 const WORK_PROMPTS = {
-  alexandre: {
-    type: 'strategy' as const,
-    systemPrompt: `Tu es Alexandre, consultant stratégique senior. Suite à une consultation vocale avec un client, tu dois produire un livrable écrit professionnel et actionnable.
+  professor: {
+    type: 'lesson' as const,
+    systemPrompt: `Tu es Professeur Martin, un enseignant pédagogue. Suite à une leçon avec un étudiant, tu dois produire un document récapitulatif pédagogique.
 
-Tu dois créer un document stratégique structuré en markdown comprenant:
-1. Résumé exécutif (2-3 paragraphes)
-2. Analyse de la situation actuelle (forces, faiblesses, opportunités, menaces)
-3. Recommandations stratégiques priorisées (top 3-5 avec rationale)
-4. Plan d'action détaillé sur 90 jours (avec timeline et responsabilités)
-5. Métriques de succès et KPIs à suivre
-6. Risques identifiés et plans de mitigation
+Tu dois créer un document de leçon structuré en markdown comprenant:
+1. Résumé de la leçon (2-3 paragraphes)
+2. Concepts clés abordés (avec définitions claires)
+3. Exemples concrets et analogies utilisées
+4. Points importants à retenir
+5. Exercices recommandés pour s'entraîner
+6. Conseils pour réviser efficacement
+7. Prochaines étapes d'apprentissage
 
-Le document doit être concret, chiffré quand possible, et directement utilisable par le client pour prendre des décisions.`,
-  },
-  marie: {
-    type: 'marketing' as const,
-    systemPrompt: `Tu es Marie, experte en marketing digital. Suite à une consultation, tu dois produire un plan marketing actionnable.
-
-Tu dois créer un document marketing structuré en markdown comprenant:
-1. Résumé de la stratégie marketing recommandée
-2. Analyse du funnel actuel et opportunités d'optimisation
-3. Plan d'acquisition client détaillé (canaux, budget, timeline)
-4. Stratégie de contenu et messaging
-5. Campagnes prioritaires à lancer (3-5 campagnes avec briefs)
-6. Budget prévisionnel et ROI attendu
-7. Dashboard de métriques à suivre (CAC, conversion rates, etc.)
-
-Inclus des templates concrets, des exemples de copy, et des recommendations d'outils.`,
-  },
-  thomas: {
-    type: 'innovation' as const,
-    systemPrompt: `Tu es Thomas, expert en innovation. Suite à une consultation, tu dois produire un plan d'innovation.
-
-Tu dois créer un document innovation structuré en markdown comprenant:
-1. Opportunités d'innovation identifiées
-2. Analyse des tendances du marché pertinentes
-3. Propositions d'innovation concrètes (3-5 idées détaillées)
-4. Roadmap de transformation sur 6-12 mois
-5. Ressources nécessaires et estimation d'effort
-6. Métriques d'impact et critères de succès
-7. Quick wins vs projets long terme
-
-Le document doit balancer créativité et pragmatisme, avec des étapes concrètes de mise en œuvre.`,
-  },
-  sophie: {
-    type: 'financial' as const,
-    systemPrompt: `Tu es Sophie, consultante financière. Suite à une consultation, tu dois produire une analyse financière.
-
-Tu dois créer un document financier structuré en markdown comprenant:
-1. Analyse de la santé financière actuelle
-2. Optimisations financières recommandées (top 5)
-3. Projections financières sur 12-24 mois (scenarios optimiste/réaliste/pessimiste)
-4. Plan de gestion de trésorerie
-5. Recommandations de pricing et unit economics
-6. KPIs financiers à monitorer (dashboard mensuel)
-7. Stratégie de levée de fonds si pertinent
-
-Tous les chiffres doivent être détaillés, sourcés, et les calculs expliqués.`,
+Le document doit être clair, pédagogique, encourageant et adapté au niveau de l'étudiant.`,
   },
 };
 
@@ -79,19 +35,19 @@ export async function generateWorkDeliverable(params: GenerateWorkParams): Promi
     throw new Error(`No work generator configured for agent ${agent.id}`);
   }
 
-  const userPrompt = `# Contexte du projet client
+  const userPrompt = `# Contexte de l'étudiant
 ${context}
 
-# Notes de consultation
-**Agent:** ${consultationNote.agentName}
+# Notes de la leçon
+**Professeur:** ${consultationNote.agentName}
 **Date:** ${consultationNote.timestamp}
 
 **Résumé:** ${consultationNote.summary}
 
-**Points clés discutés:**
+**Points clés abordés:**
 ${consultationNote.keyPoints.map(p => `- ${p}`).join('\n')}
 
-**Recommandations données:**
+**Conseils donnés:**
 ${consultationNote.recommendations.map(r => `- ${r}`).join('\n')}
 
 **Prochaines étapes:**
@@ -102,7 +58,7 @@ ${conversationTranscript}
 
 ---
 
-Produis maintenant un livrable professionnel et actionnable basé sur cette consultation. Le document doit être en markdown, bien structuré, et directement utilisable par le client.`;
+Produis maintenant un document récapitulatif pédagogique basé sur cette leçon. Le document doit être en markdown, bien structuré, encourageant et directement utilisable par l'étudiant pour réviser.`;
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -138,7 +94,7 @@ Produis maintenant un livrable professionnel et actionnable basé sur cette cons
     const deliverable: WorkDeliverable = {
       id: `deliverable-${Date.now()}`,
       type: workPrompt.type,
-      title: `${agent.name} - ${workPrompt.type === 'strategy' ? 'Plan Stratégique' : workPrompt.type === 'marketing' ? 'Plan Marketing' : workPrompt.type === 'innovation' ? 'Plan Innovation' : 'Analyse Financière'}`,
+      title: `${agent.name} - Résumé de Leçon`,
       content,
       agentId: agent.id,
       createdAt: new Date().toISOString(),
@@ -158,7 +114,7 @@ export function downloadBusinessPlan(
   consultations: ConsultationNote[],
   deliverables: WorkDeliverable[]
 ): void {
-  const markdown = `# Business Plan - ${projectName}
+  const markdown = `# Notes de Cours - ${projectName}
 
 *Généré le ${new Date().toLocaleDateString('fr-FR', {
   year: 'numeric',
@@ -168,17 +124,17 @@ export function downloadBusinessPlan(
 
 ---
 
-## Contexte du Projet
+## Mes Objectifs d'Apprentissage
 
 ${context}
 
 ---
 
 ${consultations.length > 0 ? `
-## Consultations Réalisées
+## Leçons Suivies
 
 ${consultations.map((consultation, idx) => `
-### ${idx + 1}. Consultation avec ${consultation.agentName}
+### ${idx + 1}. Leçon avec ${consultation.agentName}
 *${new Date(consultation.timestamp).toLocaleDateString('fr-FR', {
   year: 'numeric',
   month: 'long',
@@ -192,10 +148,10 @@ ${consultations.map((consultation, idx) => `
 **Points clés :**
 ${consultation.keyPoints.map(p => `- ${p}`).join('\n')}
 
-**Recommandations :**
+**Conseils :**
 ${consultation.recommendations.map(r => `- ${r}`).join('\n')}
 
-**Prochaines étapes :**
+**À faire :**
 ${consultation.nextSteps.map(s => `- ${s}`).join('\n')}
 
 ---
@@ -203,7 +159,7 @@ ${consultation.nextSteps.map(s => `- ${s}`).join('\n')}
 ` : ''}
 
 ${deliverables.length > 0 ? `
-## Livrables Produits
+## Résumés et Exercices
 
 ${deliverables.map((deliverable, idx) => `
 ### ${idx + 1}. ${deliverable.title}
@@ -217,15 +173,14 @@ ${deliverable.content}
 
 ---
 
-*Document généré par la plateforme Business Plan AI*
+*Document généré par votre plateforme d'apprentissage*
 `;
 
-  // Créer et télécharger le fichier
   const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `business-plan-${projectName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.md`;
+  link.download = `notes-cours-${projectName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.md`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

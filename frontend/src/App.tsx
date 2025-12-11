@@ -10,13 +10,12 @@ function App() {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [companyContext, setCompanyContext] = useState('');
   const [businessPlanFolder, setBusinessPlanFolder] = useState<BusinessPlanFolder>(() => {
-    // Charger le dossier depuis le localStorage si disponible
-    const saved = localStorage.getItem('businessPlanFolder');
+    const saved = localStorage.getItem('learningFolder');
     if (saved) {
       return JSON.parse(saved);
     }
     return {
-      projectName: 'Mon Business Plan',
+      projectName: 'Mon Espace d\'Apprentissage',
       context: '',
       consultations: [],
       deliverables: [],
@@ -26,16 +25,14 @@ function App() {
     };
   });
 
-  // Sauvegarder le dossier dans le localStorage à chaque modification
   useEffect(() => {
-    localStorage.setItem('businessPlanFolder', JSON.stringify(businessPlanFolder));
+    localStorage.setItem('learningFolder', JSON.stringify(businessPlanFolder));
   }, [businessPlanFolder]);
 
   const handleStartCall = (agent: Agent, context: string) => {
     setSelectedAgent(agent);
     setCompanyContext(context);
 
-    // Mettre à jour le contexte du dossier s'il a changé
     if (context !== businessPlanFolder.context) {
       setBusinessPlanFolder(prev => ({
         ...prev,
@@ -53,7 +50,6 @@ function App() {
   };
 
   const handleConsultationComplete = (note: ConsultationNote, deliverable: WorkDeliverable) => {
-    // Ajouter la consultation et le livrable au dossier
     setBusinessPlanFolder(prev => ({
       ...prev,
       consultations: [...prev.consultations, note],
@@ -61,7 +57,6 @@ function App() {
       lastUpdated: new Date().toISOString(),
     }));
 
-    // Afficher le dossier
     setCurrentScreen('folder');
     setSelectedAgent(null);
   };

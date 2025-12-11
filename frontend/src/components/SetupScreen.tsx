@@ -85,14 +85,14 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStartCall, onViewFolder }) 
       <div className="setup-container">
         <div className="setup-header">
           <div>
-            <h1 className="setup-title">Construisez votre Business Plan</h1>
+            <h1 className="setup-title">Plateforme d'Apprentissage</h1>
             <p className="setup-subtitle">
-              Rencontrez nos consultants spécialisés et avancez sur votre dossier avec l'aide d'experts IA
+              Rencontrez votre professeur personnel et progressez dans vos études avec un accompagnement sur-mesure
             </p>
           </div>
           {onViewFolder && (
             <button className="view-folder-button" onClick={onViewFolder}>
-              📁 Voir mon dossier
+              📁 Mes leçons
             </button>
           )}
         </div>
@@ -100,26 +100,26 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStartCall, onViewFolder }) 
         <div className="context-section">
           <h2 className="section-label">
             <span className="section-number">01</span>
-            Contexte de votre projet
+            Vos objectifs d'apprentissage
           </h2>
           <p className="section-description">
-            Décrivez votre entreprise, votre secteur d'activité, vos objectifs stratégiques et vos défis actuels
+            Décrivez ce que vous souhaitez apprendre, vos objectifs scolaires, vos difficultés et vos centres d'intérêt
           </p>
           <textarea
             className="context-textarea"
             value={companyContext}
             onChange={e => setCompanyContext(e.target.value)}
-            placeholder="Exemple : Nous sommes une startup fintech de 12 personnes, spécialisée dans les solutions de paiement B2B pour PME européennes. Notre objectif est d'atteindre 200 clients d'ici fin 2025 tout en améliorant notre taux de conversion de 3,2% à 5%..."
+            placeholder="Exemple : Je suis en terminale scientifique et je prépare le bac. J'ai des difficultés en mathématiques, notamment sur les fonctions et les dérivées. J'aimerais améliorer mes notes et mieux comprendre ces concepts..."
           />
         </div>
 
         <div className="upload-section">
           <h2 className="section-label">
             <span className="section-number">02</span>
-            Documents & données
+            Cours & documents
           </h2>
           <p className="section-description">
-            Ajoutez vos documents stratégiques, données de marché, rapports financiers et tout élément pertinent pour votre dossier
+            Ajoutez vos cours, fiches de révision, exercices et tout document utile pour votre apprentissage
           </p>
           <div
             className={`upload-zone ${isDragging ? 'dragover' : ''}`}
@@ -161,10 +161,10 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStartCall, onViewFolder }) 
         <div className="agents-section">
           <h2 className="section-label">
             <span className="section-number">03</span>
-            Choisissez votre consultant
+            Votre professeur
           </h2>
           <p className="section-description">
-            Sélectionnez l'expert qui correspond le mieux à vos besoins actuels. Vous pourrez consulter différents spécialistes à tout moment.
+            Sélectionnez votre professeur pour commencer une leçon interactive. Il pourra répondre à toutes vos questions.
           </p>
           <div className="agents-grid">
             {agents.map(agent => (
@@ -187,8 +187,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStartCall, onViewFolder }) 
           disabled={!isReadyToStart}
         >
           {isReadyToStart
-            ? `Démarrer la consultation avec ${selectedAgent?.name}`
-            : 'Sélectionnez un consultant pour continuer'}
+            ? `Démarrer la leçon avec ${selectedAgent?.name}`
+            : 'Sélectionnez votre professeur pour continuer'}
         </button>
       </div>
     </div>

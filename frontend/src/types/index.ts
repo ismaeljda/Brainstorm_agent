@@ -40,7 +40,7 @@ export interface ConsultationNote {
 
 export interface WorkDeliverable {
   id: string;
-  type: 'strategy' | 'marketing' | 'financial' | 'innovation';
+  type: 'lesson' | 'exercise' | 'summary' | 'quiz';
   title: string;
   content: string;
   agentId: string;

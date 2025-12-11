@@ -43,36 +43,34 @@ const CallScreen: React.FC<CallScreenProps> = ({ agent, context, onEndCall, onCo
       let enrichedSystemPrompt = agent.systemPrompt;
 
       if (context) {
-        setStatus('Récupération du contexte documentaire...');
+        setStatus('Récupération de vos cours...');
 
-        // Recherche automatique dans les documents avec le contexte fourni
         try {
           const ragResults = await searchDocuments(context, 5);
 
           if (ragResults.length > 0) {
             console.log('📚 Found', ragResults.length, 'relevant document chunks');
 
-            // Construire un résumé des documents pertinents
             const documentsContext = ragResults
               .map((r, idx) => `\n[Document ${idx + 1} - ${r.source}]\n${r.text}`)
               .join('\n---\n');
 
             enrichedSystemPrompt = `${agent.systemPrompt}
 
-# Contexte de l'utilisateur
+# Contexte de l'étudiant
 ${context}
 
-# Documents pertinents uploadés par l'utilisateur
-Les documents suivants ont été fournis par l'utilisateur et sont pertinents pour son contexte :
+# Documents et cours uploadés par l'étudiant
+Les documents suivants ont été fournis par l'étudiant et sont pertinents pour son apprentissage :
 ${documentsContext}
 
-IMPORTANT : Ces informations proviennent directement des documents de l'utilisateur. Utilise-les comme base factuelle pour tes recommandations. Tu peux utiliser l'outil search_documents pour chercher des informations additionnelles si nécessaire.`;
+IMPORTANT : Ces informations proviennent directement des cours de l'étudiant. Utilise-les comme base pour tes explications. Tu peux utiliser l'outil search_documents pour chercher des informations additionnelles si nécessaire.`;
           } else {
-            enrichedSystemPrompt = `${agent.systemPrompt}\n\n# Contexte de l'utilisateur\n${context}`;
+            enrichedSystemPrompt = `${agent.systemPrompt}\n\n# Contexte de l'étudiant\n${context}`;
           }
         } catch (error) {
           console.error('RAG initialization failed:', error);
-          enrichedSystemPrompt = `${agent.systemPrompt}\n\n# Contexte de l'utilisateur\n${context}`;
+          enrichedSystemPrompt = `${agent.systemPrompt}\n\n# Contexte de l'étudiant\n${context}`;
         }
       }
 
@@ -88,14 +86,14 @@ IMPORTANT : Ces informations proviennent directement des documents de l'utilisat
             type: 'client',
             name: 'search_documents',
             description:
-              "UTILISE CET OUTIL IMMÉDIATEMENT dès que l'utilisateur mentionne 'mes documents', 'mon fichier', 'ce que j'ai uploadé' ou demande des informations qui pourraient être dans ses documents uploadés. Recherche sémantique dans la base documentaire.",
+              "UTILISE CET OUTIL IMMÉDIATEMENT dès que l'étudiant mentionne 'mes cours', 'mon document', 'ce que j'ai uploadé' ou demande des informations qui pourraient être dans ses cours uploadés. Recherche sémantique dans la base documentaire.",
             parameters: {
               type: 'object',
               properties: {
                 query: {
                   type: 'string',
                   description:
-                    'La requête de recherche pour trouver des informations pertinentes dans les documents',
+                    'La requête de recherche pour trouver des informations pertinentes dans les cours',
                 },
               },
               required: ['query'],
@@ -156,35 +154,32 @@ IMPORTANT : Ces informations proviennent directement des documents de l'utilisat
       }
     }
 
-    // Générer le livrable de travail
     if (onConsultationComplete && conversationTranscriptRef.current) {
       setIsGenerating(true);
-      setStatus('Génération du livrable en cours...');
+      setStatus('Génération du résumé de leçon...');
 
       try {
-        // Créer une note de consultation simulée (dans un vrai système, cela viendrait de l'analyse de la conversation)
         const consultationNote: ConsultationNote = {
           agentId: agent.id,
           agentName: agent.name,
           timestamp: new Date().toISOString(),
-          summary: `Consultation avec ${agent.name} sur le projet business plan`,
+          summary: `Leçon avec ${agent.name}`,
           keyPoints: [
-            'Discussion sur le contexte du projet',
-            'Analyse des défis actuels',
-            'Identification des opportunités',
+            'Points clés abordés pendant la leçon',
+            'Concepts expliqués',
+            'Exemples discutés',
           ],
           recommendations: [
-            'Mise en place d\'une stratégie structurée',
-            'Focus sur les quick wins',
-            'Suivi régulier des métriques clés',
+            'Revoir les notions principales',
+            'Pratiquer avec des exercices',
+            'Poser des questions en cas de doute',
           ],
           nextSteps: [
-            'Implémenter les recommandations prioritaires',
-            'Planifier une revue dans 2 semaines',
+            'Réviser les points abordés',
+            'Faire les exercices recommandés',
           ],
         };
 
-        // Générer le livrable de travail
         const deliverable = await generateWorkDeliverable({
           agent,
           context,
@@ -194,8 +189,8 @@ IMPORTANT : Ces informations proviennent directement des documents de l'utilisat
 
         onConsultationComplete(consultationNote, deliverable);
       } catch (error) {
-        console.error('Erreur lors de la génération du livrable:', error);
-        setStatus('Erreur lors de la génération du livrable');
+        console.error('Erreur lors de la génération du résumé:', error);
+        setStatus('Erreur lors de la génération du résumé');
       } finally {
         setIsGenerating(false);
       }
@@ -212,7 +207,7 @@ IMPORTANT : Ces informations proviennent directement des documents de l'utilisat
           <p>{agent.description}</p>
         </div>
         <button className="end-call-button" onClick={handleEndCall} disabled={isGenerating}>
-          {isGenerating ? 'Génération...' : 'Terminer l\'appel'}
+          {isGenerating ? 'Génération...' : 'Terminer la leçon'}
         </button>
       </div>
 
