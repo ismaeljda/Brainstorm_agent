@@ -6,9 +6,10 @@ import './SetupScreen.css';
 
 interface SetupScreenProps {
   onStartCall: (agent: Agent, context: string) => void;
+  onViewFolder?: () => void;
 }
 
-const SetupScreen: React.FC<SetupScreenProps> = ({ onStartCall }) => {
+const SetupScreen: React.FC<SetupScreenProps> = ({ onStartCall, onViewFolder }) => {
   const [companyContext, setCompanyContext] = useState('');
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [documents, setDocuments] = useState<UploadedDocument[]>([]);
@@ -81,82 +82,102 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStartCall }) => {
 
   return (
     <div className="setup-screen">
-      <div className="setup-card">
+      <div className="setup-container">
         <div className="setup-header">
-          <h1>AI Consultant Platform</h1>
-          <p>Configurez votre session et choisissez votre agent IA</p>
+          <div>
+            <h1 className="setup-title">Construisez votre Business Plan</h1>
+            <p className="setup-subtitle">
+              Rencontrez nos consultants spécialisés et avancez sur votre dossier avec l'aide d'experts IA
+            </p>
+          </div>
+          {onViewFolder && (
+            <button className="view-folder-button" onClick={onViewFolder}>
+              📁 Voir mon dossier
+            </button>
+          )}
         </div>
 
-        <div className="setup-content">
-          <div className="setup-section">
-            <h2>📋 Contexte Entreprise</h2>
-            <textarea
-              className="context-textarea"
-              value={companyContext}
-              onChange={e => setCompanyContext(e.target.value)}
-              placeholder="Décrivez votre entreprise, son secteur d'activité, ses objectifs, ses défis actuels...
+        <div className="context-section">
+          <h2 className="section-label">
+            <span className="section-number">01</span>
+            Contexte de votre projet
+          </h2>
+          <p className="section-description">
+            Décrivez votre entreprise, votre secteur d'activité, vos objectifs stratégiques et vos défis actuels
+          </p>
+          <textarea
+            className="context-textarea"
+            value={companyContext}
+            onChange={e => setCompanyContext(e.target.value)}
+            placeholder="Exemple : Nous sommes une startup fintech de 12 personnes, spécialisée dans les solutions de paiement B2B pour PME européennes. Notre objectif est d'atteindre 200 clients d'ici fin 2025 tout en améliorant notre taux de conversion de 3,2% à 5%..."
+          />
+        </div>
 
-Ex: Nous sommes une startup fintech spécialisée dans les paiements B2B. Nous cherchons à optimiser notre stratégie de croissance et à améliorer notre taux de conversion..."
-            />
-          </div>
-
-          <div className="setup-section">
-            <h2>📄 Documents</h2>
-            <p className="section-description">
-              Importez vos documents (stratégie, données marché, rapports...)
-            </p>
-            <div
-              className={`upload-zone ${isDragging ? 'dragover' : ''}`}
-              onClick={() => document.getElementById('fileInput')?.click()}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <div className="upload-icon">📁</div>
-              <div>
-                <strong>Cliquez ou glissez vos fichiers ici</strong>
-              </div>
-              <div className="upload-hint">PDF, DOCX, TXT, MD, CSV, JSON, LOG</div>
+        <div className="upload-section">
+          <h2 className="section-label">
+            <span className="section-number">02</span>
+            Documents & données
+          </h2>
+          <p className="section-description">
+            Ajoutez vos documents stratégiques, données de marché, rapports financiers et tout élément pertinent pour votre dossier
+          </p>
+          <div
+            className={`upload-zone ${isDragging ? 'dragover' : ''}`}
+            onClick={() => document.getElementById('fileInput')?.click()}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <div className="upload-icon">📂</div>
+            <div>
+              <strong>Cliquez pour parcourir ou glissez vos fichiers ici</strong>
             </div>
-            <input
-              type="file"
-              id="fileInput"
-              multiple
-              accept=".pdf,.txt,.md,.docx,.csv,.json,.log"
-              style={{ display: 'none' }}
-              onChange={e => handleFileSelect(e.target.files)}
-            />
-            {documents.length > 0 && (
-              <div className="file-list">
-                {documents.map(doc => (
-                  <div key={doc.id} className={`file-item ${doc.status}`}>
-                    <span className="file-name">{doc.filename}</span>
-                    <span className="file-status">
-                      {doc.status === 'uploading' && '⏳ Upload...'}
-                      {doc.status === 'ready' && `✓ ${doc.chunks} chunks`}
-                      {doc.status === 'failed' && '❌ Échec'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="upload-hint">Formats supportés : PDF, DOCX, TXT, MD, CSV, JSON, LOG</div>
           </div>
-
-          <div className="setup-section agents-section">
-            <h2>🤖 Choisissez votre Agent</h2>
-            <div className="agents-grid">
-              {agents.map(agent => (
-                <div
-                  key={agent.id}
-                  className={`agent-card ${selectedAgent?.id === agent.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedAgent(agent)}
-                >
-                  <div className="agent-icon">{agent.icon}</div>
-                  <div className="agent-name">{agent.name}</div>
-                  <div className="agent-description">{agent.description}</div>
+          <input
+            type="file"
+            id="fileInput"
+            multiple
+            accept=".pdf,.txt,.md,.docx,.csv,.json,.log"
+            style={{ display: 'none' }}
+            onChange={e => handleFileSelect(e.target.files)}
+          />
+          {documents.length > 0 && (
+            <div className="file-list">
+              {documents.map(doc => (
+                <div key={doc.id} className={`file-item ${doc.status}`}>
+                  <span className="file-name">{doc.filename}</span>
+                  <span className="file-status">
+                    {doc.status === 'uploading' && 'EN COURS'}
+                    {doc.status === 'ready' && `PRÊT · ${doc.chunks} SECTIONS`}
+                    {doc.status === 'failed' && 'ÉCHEC'}
+                  </span>
                 </div>
               ))}
             </div>
+          )}
+        </div>
+
+        <div className="agents-section">
+          <h2 className="section-label">
+            <span className="section-number">03</span>
+            Choisissez votre consultant
+          </h2>
+          <p className="section-description">
+            Sélectionnez l'expert qui correspond le mieux à vos besoins actuels. Vous pourrez consulter différents spécialistes à tout moment.
+          </p>
+          <div className="agents-grid">
+            {agents.map(agent => (
+              <div
+                key={agent.id}
+                className={`agent-card ${selectedAgent?.id === agent.id ? 'selected' : ''}`}
+                onClick={() => setSelectedAgent(agent)}
+              >
+                <div className="agent-icon">{agent.icon}</div>
+                <div className="agent-name">{agent.name}</div>
+                <div className="agent-description">{agent.description}</div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -166,8 +187,8 @@ Ex: Nous sommes une startup fintech spécialisée dans les paiements B2B. Nous c
           disabled={!isReadyToStart}
         >
           {isReadyToStart
-            ? `Lancer la consultation avec ${selectedAgent?.name}`
-            : 'Sélectionnez un agent pour continuer'}
+            ? `Démarrer la consultation avec ${selectedAgent?.name}`
+            : 'Sélectionnez un consultant pour continuer'}
         </button>
       </div>
     </div>

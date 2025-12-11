@@ -1,20 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createClient } from '@anam-ai/js-sdk';
-import type { Agent } from '../types';
+import type { Agent, ConsultationNote, WorkDeliverable } from '../types';
 import { createSessionToken, searchDocuments } from '../services/api';
+import { generateWorkDeliverable } from '../services/workGenerator';
 import './CallScreen.css';
 
 interface CallScreenProps {
   agent: Agent;
   context: string;
   onEndCall: () => void;
+  onConsultationComplete?: (note: ConsultationNote, deliverable: WorkDeliverable) => void;
 }
 
-const CallScreen: React.FC<CallScreenProps> = ({ agent, context, onEndCall }) => {
+const CallScreen: React.FC<CallScreenProps> = ({ agent, context, onEndCall, onConsultationComplete }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState('Connexion en cours...');
   const [isConnected, setIsConnected] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const anamClientRef = useRef<any>(null);
+  const conversationTranscriptRef = useRef<string>('');
 
   useEffect(() => {
     initializeCall();
@@ -35,10 +39,42 @@ const CallScreen: React.FC<CallScreenProps> = ({ agent, context, onEndCall }) =>
     try {
       setStatus('Création de la session...');
 
-      // Enrichir le system prompt avec le contexte
-      const enrichedSystemPrompt = context
-        ? `${agent.systemPrompt}\n\n# Contexte de l'utilisateur\n${context}`
-        : agent.systemPrompt;
+      // Enrichir le system prompt avec le contexte et les documents RAG
+      let enrichedSystemPrompt = agent.systemPrompt;
+
+      if (context) {
+        setStatus('Récupération du contexte documentaire...');
+
+        // Recherche automatique dans les documents avec le contexte fourni
+        try {
+          const ragResults = await searchDocuments(context, 5);
+
+          if (ragResults.length > 0) {
+            console.log('📚 Found', ragResults.length, 'relevant document chunks');
+
+            // Construire un résumé des documents pertinents
+            const documentsContext = ragResults
+              .map((r, idx) => `\n[Document ${idx + 1} - ${r.source}]\n${r.text}`)
+              .join('\n---\n');
+
+            enrichedSystemPrompt = `${agent.systemPrompt}
+
+# Contexte de l'utilisateur
+${context}
+
+# Documents pertinents uploadés par l'utilisateur
+Les documents suivants ont été fournis par l'utilisateur et sont pertinents pour son contexte :
+${documentsContext}
+
+IMPORTANT : Ces informations proviennent directement des documents de l'utilisateur. Utilise-les comme base factuelle pour tes recommandations. Tu peux utiliser l'outil search_documents pour chercher des informations additionnelles si nécessaire.`;
+          } else {
+            enrichedSystemPrompt = `${agent.systemPrompt}\n\n# Contexte de l'utilisateur\n${context}`;
+          }
+        } catch (error) {
+          console.error('RAG initialization failed:', error);
+          enrichedSystemPrompt = `${agent.systemPrompt}\n\n# Contexte de l'utilisateur\n${context}`;
+        }
+      }
 
       // Créer la configuration de persona avec le tool RAG
       const personaConfig = {
@@ -111,7 +147,7 @@ const CallScreen: React.FC<CallScreenProps> = ({ agent, context, onEndCall }) =>
     }
   };
 
-  const handleEndCall = () => {
+  const handleEndCall = async () => {
     if (anamClientRef.current) {
       try {
         anamClientRef.current.disconnect();
@@ -119,7 +155,53 @@ const CallScreen: React.FC<CallScreenProps> = ({ agent, context, onEndCall }) =>
         console.error('Error disconnecting:', error);
       }
     }
-    onEndCall();
+
+    // Générer le livrable de travail
+    if (onConsultationComplete && conversationTranscriptRef.current) {
+      setIsGenerating(true);
+      setStatus('Génération du livrable en cours...');
+
+      try {
+        // Créer une note de consultation simulée (dans un vrai système, cela viendrait de l'analyse de la conversation)
+        const consultationNote: ConsultationNote = {
+          agentId: agent.id,
+          agentName: agent.name,
+          timestamp: new Date().toISOString(),
+          summary: `Consultation avec ${agent.name} sur le projet business plan`,
+          keyPoints: [
+            'Discussion sur le contexte du projet',
+            'Analyse des défis actuels',
+            'Identification des opportunités',
+          ],
+          recommendations: [
+            'Mise en place d\'une stratégie structurée',
+            'Focus sur les quick wins',
+            'Suivi régulier des métriques clés',
+          ],
+          nextSteps: [
+            'Implémenter les recommandations prioritaires',
+            'Planifier une revue dans 2 semaines',
+          ],
+        };
+
+        // Générer le livrable de travail
+        const deliverable = await generateWorkDeliverable({
+          agent,
+          context,
+          conversationTranscript: conversationTranscriptRef.current,
+          consultationNote,
+        });
+
+        onConsultationComplete(consultationNote, deliverable);
+      } catch (error) {
+        console.error('Erreur lors de la génération du livrable:', error);
+        setStatus('Erreur lors de la génération du livrable');
+      } finally {
+        setIsGenerating(false);
+      }
+    } else {
+      onEndCall();
+    }
   };
 
   return (
@@ -129,8 +211,8 @@ const CallScreen: React.FC<CallScreenProps> = ({ agent, context, onEndCall }) =>
           <h2>{agent.name}</h2>
           <p>{agent.description}</p>
         </div>
-        <button className="end-call-button" onClick={handleEndCall}>
-          Terminer l'appel
+        <button className="end-call-button" onClick={handleEndCall} disabled={isGenerating}>
+          {isGenerating ? 'Génération...' : 'Terminer l\'appel'}
         </button>
       </div>
 

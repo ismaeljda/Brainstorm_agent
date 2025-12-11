@@ -27,3 +27,33 @@ export interface SearchResult {
   source: string;
   relevance: number;
 }
+
+export interface ConsultationNote {
+  agentId: string;
+  agentName: string;
+  timestamp: string;
+  summary: string;
+  keyPoints: string[];
+  recommendations: string[];
+  nextSteps: string[];
+}
+
+export interface WorkDeliverable {
+  id: string;
+  type: 'strategy' | 'marketing' | 'financial' | 'innovation';
+  title: string;
+  content: string;
+  agentId: string;
+  createdAt: string;
+  status: 'generating' | 'ready' | 'failed';
+}
+
+export interface BusinessPlanFolder {
+  projectName: string;
+  context: string;
+  consultations: ConsultationNote[];
+  deliverables: WorkDeliverable[];
+  documents: UploadedDocument[];
+  createdAt: string;
+  lastUpdated: string;
+}
